@@ -2,6 +2,12 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import boardImg from './board.svg'
 
+const Root = styled.div`
+  background-color: #222;
+  width: 100vw;
+  height: 100vh;
+`
+
 const CanvasEl = styled.canvas`
   background-image: url(${boardImg});
   background-size: contain;
@@ -20,7 +26,9 @@ class Canvas extends Component {
 
     this.state = {
       mouseX: 0,
-      mouseY: 0
+      mouseY: 0,
+      width: 0,
+      height: 0
     }
 
     this._onMouseMove = this.onMouseMove.bind(this)
@@ -33,6 +41,26 @@ class Canvas extends Component {
     this.renderCanvas()
 
     window.addEventListener('mousemove', this._onMouseMove)
+
+    const innerWidth = window.innerWidth
+    const innerHeight = window.innerHeight
+
+    const aspect = 750 / 519
+
+    let width, height
+
+    if (innerWidth > innerHeight * aspect) {
+      height = innerHeight
+      width = innerHeight * aspect
+    } else {
+      width = innerWidth
+      height = innerWidth / aspect
+    }
+
+    this.setState({
+      width,
+      height
+    })
   }
 
   onMouseMove (e) {
@@ -47,7 +75,7 @@ class Canvas extends Component {
     const {
       width,
       height
-    } = this.props
+    } = this.state
 
     ctx.clearRect(0, 0, width, height)
 
@@ -60,9 +88,13 @@ class Canvas extends Component {
     const {
       width,
       height
-    } = this.props
+    } = this.state
 
-    return <CanvasEl ref={this.canvas} width={width} height={height} />
+    return (
+      <Root>
+        <CanvasEl ref={this.canvas} width={width} height={height} />
+      </Root>
+    )
   }
 }
 

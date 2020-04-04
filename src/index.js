@@ -11,6 +11,15 @@ const GlobalStyle = createGlobalStyle`
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 1.6rem;
+
+    & * {
+      box-sizing: border-box;
+    }
+  }
+
+  html {
+    font-size: 62.5%;
   }
 
   code {

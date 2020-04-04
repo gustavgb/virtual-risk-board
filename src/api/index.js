@@ -1,7 +1,8 @@
 import firebase from 'firebase/app'
 import 'firebase/firestore'
+import 'firebase/auth'
 
-const app = firebase.initializeApp({
+const app = window.firebase = firebase.initializeApp({
   apiKey: 'AIzaSyBLbhRbywY8XTdUXJUvhWBu3ERxOVbFrtE',
   authDomain: 'risk-online-db16c.firebaseapp.com',
   databaseURL: 'https://risk-online-db16c.firebaseio.com',
@@ -13,5 +14,6 @@ const app = firebase.initializeApp({
 })
 
 export const firestore = app.firestore()
+export const auth = app.auth()
 
 export default app

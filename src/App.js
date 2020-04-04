@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
 
 import styled from 'styled-components'
-import Canvas from './Canvas'
+
+import { auth } from 'api'
+import Login from 'Login'
+import Browse from 'Browse'
+import Canvas from 'Canvas'
 
 const Root = styled.div`
-  background-color: #222;
-  width: 100vw;
-  height: 100vh;
 `
 
 class App extends Component {
@@ -14,42 +15,40 @@ class App extends Component {
     super(props)
 
     this.state = {
-      width: 0,
-      height: 0
+      user: null,
+      loaded: false,
+      joinedGame: null
     }
   }
 
   componentDidMount () {
-    const innerWidth = window.innerWidth
-    const innerHeight = window.innerHeight
+    const self = this
 
-    const aspect = 750 / 519
-
-    let width, height
-
-    if (innerWidth > innerHeight * aspect) {
-      height = innerHeight
-      width = innerHeight * aspect
-    } else {
-      width = innerWidth
-      height = innerWidth / aspect
-    }
-
-    this.setState({
-      width,
-      height
+    auth.onAuthStateChanged(function (user) {
+      self.setState({
+        user,
+        loaded: true
+      })
     })
   }
 
   render () {
     const {
-      width,
-      height
+      loaded,
+      user,
+      joinedGame
     } = this.state
 
     return (
       <Root>
-        <Canvas width={width} height={height} />
+        {!loaded && 'Loading...'}
+        {loaded && !user && (
+          <Login />
+        )}
+        {loaded && user && !joinedGame && (
+          <Browse user={user} onJoinGame={(game) => this.setState({ joinedGame: game })} />
+        )}
+        {loaded && user && joinedGame && <Canvas joinedGame={joinedGame} user={user} />}
       </Root>
     )
   }
