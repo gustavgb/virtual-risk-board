@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { streamGames, addMember, removeMember, createGame, deleteGame, changeTitle, startGame } from 'api/games'
+import { streamGames, addMember, removeMember, createGame, deleteGame, changeTitle } from 'api/browse'
 import styled from 'styled-components'
 import dateFormat from 'dateformat'
 import { auth } from 'api'
@@ -101,26 +101,25 @@ class Browse extends Component {
           <button onClick={() => createGame(user)}>Nyt spil</button>
           {games.map(game => (
             <Game key={game.id}>
-              <h2 onClick={() => changeTitle(game.id)}>{game.title}</h2>
+              <h2 onClick={() => changeTitle(game.id)}>{game.title} ({game.started ? 'I gang' : 'Nyt'})</h2>
               <p>Oprettet: {dateFormat(game.creationDate.seconds * 1000, 'dddd, mmmm dS, yyyy, h:MM:ss TT')}</p>
               <p>Oprettet af {game.creator}</p>
               <p>
-                Spillere:
+                Spillere:&nbsp;
+                <button onClick={() => this.addMember(game.id)}>Tilføj spiller</button>
               </p>
               <ul>
                 {game.members.map(member => (
                   <li key={member}>
                     {member}&nbsp;
-                    {!game.started && <button onClick={() => this.removeMember(game.id, member)}>x</button>}
+                    <button onClick={() => this.removeMember(game.id, member)}>x</button>
                   </li>
                 ))}
               </ul>
-              <button onClick={() => this.addMember(game.id)}>Tilføj spiller</button>
               {user.email === game.creator && (
                 <button onClick={() => deleteGame(game.id)}>Slet spil</button>
               )}
-              {game.started && <Button onClick={() => onJoinGame(game.id)}>Join</Button>}
-              {!game.started && <Button onClick={() => startGame(game.id)}>Start spil</Button>}
+              <Button onClick={() => onJoinGame(game.id)}>Join</Button>
             </Game>
           ))}
         </Root>

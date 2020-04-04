@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import boardImg from 'images/board.svg'
 import bgImg from 'images/bg.jpg'
 import { countries } from 'countries'
+import { streamGame, streamHand, getUsers } from 'api/game'
 
 const Root = styled.div`
   background-image: url(${bgImg});
@@ -70,6 +71,9 @@ class BoardContainer extends Component {
     super(props)
 
     this.state = {
+      game: null,
+      hand: null,
+      users: null,
       mouseX: 0,
       mouseY: 0,
       width: 0,
@@ -79,11 +83,34 @@ class BoardContainer extends Component {
 
     this.boardEl = React.createRef()
 
+    this.streamGame = null
+    this.streamHand = null
+
     this._onMouseDown = this.onMouseDown.bind(this)
     this._onResize = this.onResize.bind(this)
   }
 
   componentDidMount () {
+    const { user, joinedGame } = this.props
+
+    this.streamGame = streamGame(user, joinedGame).subscribe(game => {
+      this.setState({
+        game
+      })
+    })
+
+    this.streamHand = streamHand(user, joinedGame).subscribe(hand => {
+      this.setState({
+        hand
+      })
+    })
+
+    getUsers(joinedGame).then(users => {
+      this.setState({
+        users
+      })
+    })
+
     window.addEventListener('mousedown', this._onMouseDown)
     window.addEventListener('resize', this._onResize)
 
@@ -125,8 +152,13 @@ class BoardContainer extends Component {
   render () {
     const {
       width,
-      height
+      height,
+      users,
+      game,
+      hand
     } = this.state
+
+    console.log(users, game, hand)
 
     return (
       <Root>

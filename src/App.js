@@ -6,6 +6,7 @@ import { auth } from 'api'
 import Login from 'Login'
 import Browse from 'Browse'
 import Board from 'Board'
+import { joinGame } from 'api/browse'
 
 const Root = styled.div`
 `
@@ -32,6 +33,14 @@ class App extends Component {
     })
   }
 
+  onJoinGame (gameId) {
+    const { user } = this.state
+
+    joinGame(user, gameId)
+
+    this.setState({ joinedGame: gameId })
+  }
+
   render () {
     const {
       loaded,
@@ -46,7 +55,7 @@ class App extends Component {
           <Login />
         )}
         {loaded && user && !joinedGame && (
-          <Browse user={user} onJoinGame={(game) => this.setState({ joinedGame: game })} />
+          <Browse user={user} onJoinGame={this.onJoinGame.bind(this)} />
         )}
         {loaded && user && joinedGame && <Board joinedGame={joinedGame} user={user} />}
       </Root>

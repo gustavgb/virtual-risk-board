@@ -29,7 +29,18 @@ export const streamGames = (id) => {
   return combineLatest(
     collectionData(ref1, 'id'),
     collectionData(ref2, 'id')
-  ).pipe(map(([one, two]) => [...one, ...two.filter(a => !one.find(b => b.id === a.id))]))
+  )
+    .pipe(
+      map(([one, two]) => [...one, ...two.filter(a => !one.find(b => b.id === a.id))]),
+      map(games => games.sort((a, b) => {
+        if (a.creationDate.seconds > b.creationDate.seconds) {
+          return -1
+        } else if (a.creationDate.seconds < b.creationDate.seconds) {
+          return 1
+        }
+        return 0
+      }))
+    )
 }
 
 export const createGame = (user) => {
@@ -45,7 +56,26 @@ export const createGame = (user) => {
       creationDate: new Date(),
       creator: user.email,
       members: [user.email],
-      started: false
+      countries: countries.map(country => ({
+        name: country.name,
+        troops: []
+      })),
+      events: []
+    })
+  })
+}
+
+export const joinGame = (user, gameId) => {
+  firestore.runTransaction(transaction => {
+    const ref = firestore.collection('hands').doc(gameId + user.email)
+    return transaction.get(ref).then(doc => {
+      if (!doc.exists) {
+        transaction.set(ref, {
+          cards: [],
+          player: user.email,
+          game: gameId
+        })
+      }
     })
   })
 }
@@ -60,17 +90,21 @@ export const changeTitle = (gameId) => {
   return new Promise((resolve, reject) => {
     const title = window.prompt('Skriv en ny titel')
 
-    if (!title) {
-      reject(new Error('No title written'))
+    try {
+      if (!title) {
+        throw new Error('No title written')
+      }
+
+      const ref = firestore.collection('games').doc(gameId)
+
+      ref.update({
+        title
+      })
+        .then(resolve)
+        .catch(reject)
+    } catch (err) {
+      reject(err)
     }
-
-    const ref = firestore.collection('games').doc(gameId)
-
-    ref.update({
-      title
-    })
-      .then(resolve)
-      .catch(reject)
   })
 }
 
@@ -126,6 +160,7 @@ export const removeMember = (gameId, memberEmail) => {
 export const startGame = (gameId) => {
   const gameRef = firestore.collection('games').doc(gameId)
   const boardRef = firestore.collection('boards').doc(gameId)
+
   return firestore.runTransaction(transaction => {
     return transaction.get(gameRef).then(doc => {
       if (!doc.exists) {
@@ -138,10 +173,6 @@ export const startGame = (gameId) => {
         throw new Error('Game already started')
       }
 
-      // transaction.update(gameRef, {
-      //   started: true
-      // })
-
       const countryFlatList = shuffle(countries.map(country => country.name))
       const countryShares = countryFlatList.reduce((acc, country) => {
         const turn = acc.turn
@@ -153,6 +184,15 @@ export const startGame = (gameId) => {
       }, {
         turn: 0
       })
+      const hands = game.members.map(member => ({
+        player: member,
+        game: gameId,
+        id: gameId + member
+      }))
+
+      transaction.update(gameRef, {
+        started: true
+      })
 
       transaction.set(boardRef, {
         countries: countries.map(country => ({
@@ -160,7 +200,18 @@ export const startGame = (gameId) => {
           troops: {
             [countryShares[country.name]]: 1
           }
-        }))
+        })),
+        hands,
+        events: []
+      })
+
+      hands.forEach(hand => {
+        const handRef = firestore.collection('hands').doc(hand.id)
+        transaction.set(handRef, {
+          player: hand.player,
+          game: hand.game,
+          cards: []
+        })
       })
     })
   })
