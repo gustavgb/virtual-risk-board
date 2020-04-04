@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { streamGames, addMember, removeMember } from 'api/games'
+import { streamGames, addMember, removeMember, createGame, deleteGame, changeTitle } from 'api/games'
 import styled from 'styled-components'
 import dateFormat from 'dateformat'
 import { auth } from 'api'
@@ -29,6 +29,7 @@ const Game = styled.div`
   padding: 1rem;
   width: 100%;
   border: 1px solid black;
+  margin: 1rem 0;
 
   &::after {
     clear: both;
@@ -97,9 +98,10 @@ class Browse extends Component {
         {error && <Error>{error}</Error>}
         <Root>
           <Header>Dine spil</Header>
+          <button onClick={() => createGame(user)}>Nyt spil</button>
           {games.map(game => (
             <Game key={game.id}>
-              <h2>{game.title}</h2>
+              <h2 onClick={() => changeTitle(game.id)}>{game.title}</h2>
               <p>Oprettet: {dateFormat(game.creationDate.seconds * 1000, 'dddd, mmmm dS, yyyy, h:MM:ss TT')}</p>
               <p>Oprettet af {game.creator}</p>
               <p>
@@ -111,6 +113,9 @@ class Browse extends Component {
                 ))}
               </ul>
               <button onClick={() => this.addMember(game.id)}>Tilføj spiller</button>
+              {user.email === game.creator && (
+                <button onClick={() => deleteGame(game.id)}>Slet spil</button>
+              )}
               <Button onClick={() => onJoinGame(game.id)}>Join</Button>
             </Game>
           ))}
