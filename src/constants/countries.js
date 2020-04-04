@@ -167,3 +167,8 @@ export const countries = [{
   x: 0.638085742771685,
   y: 0.8501440922190202
 }]
+
+export const countriesDir = countries.reduce((acc, country) => {
+  acc[country.name] = country
+  return acc
+}, {})

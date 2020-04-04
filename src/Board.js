@@ -3,8 +3,14 @@ import styled from 'styled-components'
 import boardImg from 'images/board.svg'
 import bgImg from 'images/bg.jpg'
 import cardBackImg from 'images/card_back.png'
-import { countries } from 'countries'
+import trashImg from 'images/trash.png'
+import card0Img from 'images/card_1.png'
+import card1Img from 'images/card_2.png'
+import card2Img from 'images/card_3.png'
+import { countriesDir } from 'constants/countries'
 import { streamGame, streamHand, getUsers } from 'api/game'
+import { colors } from 'constants/colors'
+import { Link } from 'react-router-dom'
 
 const Root = styled.div`
   background-image: url(${bgImg});
@@ -38,15 +44,16 @@ const Board = styled.div.attrs(props => ({
 const Content = styled.div`
   float: left;
   position: relative;
-  width: calc(100% - 30rem);
+  width: calc(100% - 20vw);
   height: 100%;
 `
 
 const Sidebar = styled.div`
-  width: 30rem;
+  width: 20vw;
   height: 100vh;
   overflow-y: auto;
   float: left;
+  padding: 0 1rem;
 `
 
 const CountryMarker = styled.div.attrs(props => ({
@@ -73,16 +80,59 @@ const CountryMarker = styled.div.attrs(props => ({
   }
 `
 
-const Pile = styled.div`
-  background-color: #751b18;
-  background-image: url(${cardBackImg});
+const Zone = styled.div`
+  background-color: ${props => props.color || 'transparent'};
+  background-image: url(${props => props.bg});
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  border: 2px solid black;
-  box-shadow: 0px 0px 10px 0px black;
-  height: 20rem;
+  border: ${props => props.color ? '2px solid black' : 'none'};
+  box-shadow: ${props => props.color ? '0px 0px 10px 0px black' : 'none'};
+  min-height: ${props => props.height || '20vh'};
   width: 100%;
+  color: ${props => props => props.color ? props.theme.invertColor(props.color) : 'black'};
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 2vh 0;
+`
+
+const Select = styled.select`
+  width: 100%;
+  background-color: ${props => props.color};
+  color: ${props => props.theme.invertColor(props.color)};
+`
+
+const Option = styled.option`
+  background-color: ${props => props.color};
+  color: ${props => props.theme.invertColor(props.color)};
+
+  &:hover {
+    background-color: ${props => props.color};
+    color: ${props => props.theme.invertColor(props.color)};
+  }
+`
+
+const Button = styled.button`
+  padding: 1rem 0.5rem;
+`
+
+const Hand = styled.div`
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 1rem;
+  margin: 2vh 0;
+`
+
+const Card = styled.div`
+  background-color: white;
+  background-image: url(${props => props.bg});
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  height: 10vw;
 `
 
 class BoardContainer extends Component {
@@ -96,8 +146,7 @@ class BoardContainer extends Component {
       mouseX: 0,
       mouseY: 0,
       width: 0,
-      height: 0,
-      unit: 0
+      height: 0
     }
 
     this.boardEl = React.createRef()
@@ -105,7 +154,6 @@ class BoardContainer extends Component {
     this.streamGame = null
     this.streamHand = null
 
-    this._onMouseDown = this.onMouseDown.bind(this)
     this._onResize = this.onResize.bind(this)
   }
 
@@ -130,19 +178,30 @@ class BoardContainer extends Component {
       })
     })
 
-    window.addEventListener('mousedown', this._onMouseDown)
     window.addEventListener('resize', this._onResize)
 
     this.onResize()
   }
 
   componentWillUnmount () {
-    window.removeEventListener('mousedown', this._onMouseDown)
     window.removeEventListener('resize', this._onResize)
   }
 
+  getCardBg (card) {
+    switch (card) {
+      case 0:
+        return card0Img
+      case 1:
+        return card1Img
+      case 2:
+        return card2Img
+      default:
+        return ''
+    }
+  }
+
   onResize () {
-    const innerWidth = window.innerWidth - 300
+    const innerWidth = window.innerWidth * 0.8
     const innerHeight = window.innerHeight
 
     const aspect = 750 / 519
@@ -159,18 +218,39 @@ class BoardContainer extends Component {
 
     this.setState({
       width,
-      height,
-      unit: width / 1000
+      height
     })
   }
 
-  onMouseDown (e) {
-    const rect = this.boardEl.current.getBoundingClientRect()
+  renderCountry (country) {
+    const {
+      width,
+      height
+    } = this.state
+    const groups = country.troops.length
 
-    this.setState({
-      mouseX: e.clientX - rect.x,
-      mouseY: e.clientY - rect.y
-    })
+    return (
+      <React.Fragment key={country.name}>
+        {country.troops.map((troop, index) => (
+          <CountryMarker
+            key={country.name + index}
+            color='green'
+            x={(country.x - (groups / 2) * 0.02 + 0.04 * index) * width}
+            y={country.y * height}
+          >
+            {troop.amount}
+          </CountryMarker>
+        ))}
+        {groups === 0 && (
+          <CountryMarker
+            key={country.name + 0}
+            color='grey'
+            x={country.x * width}
+            y={country.y * height}
+          />
+        )}
+      </React.Fragment>
+    )
   }
 
   render () {
@@ -181,26 +261,44 @@ class BoardContainer extends Component {
       game,
       hand
     } = this.state
+    const {
+      user: {
+        email
+      }
+    } = this.props
 
     console.log(users, game, hand)
+
+    if (!game || !users || !hand) {
+      return 'Loading...'
+    }
+
+    const joinedCountries = game.countries.map(country => ({ ...countriesDir[country.name], ...country }))
+    const color = Object.keys(game.colors).find(color => game.colors[color] === email) || '#808080'
+    const colorList = colors.filter(c => !game.colors[c])
 
     return (
       <Root>
         <Sidebar>
-          <Pile />
+          <Zone height='5rem'>
+            <Link to='/'>Tilbage til forsiden</Link>
+          </Zone>
+          <Zone color='#ddd' bg={trashImg} height='10vh' />
+          <Zone color={color}>
+            <Select value={color} placeholder='Vælg brikker' color={color}>
+              <Option color='#808080'>Ingen farve valgt</Option>
+              {colorList.map(c => <Option key={c} color={c} />)}
+            </Select>
+            <Button>Tag armérer</Button>
+          </Zone>
+          <Zone bg={cardBackImg} color='#751b18' />
+          <Hand>
+            {hand.cards.map((card, index) => <Card key={index} bg={this.getCardBg(card)} />)}
+          </Hand>
         </Sidebar>
         <Content>
-          <Board width={width} height={height} ref={this.boardEl}>
-            {countries.map(country => (
-              <CountryMarker
-                key={country.name}
-                color='green'
-                x={country.x * width}
-                y={country.y * height}
-              >
-                1
-              </CountryMarker>
-            ))}
+          <Board width={width} height={height}>
+            {joinedCountries.map(country => this.renderCountry(country))}
           </Board>
         </Content>
       </Root>

@@ -2,7 +2,7 @@ import { firestore } from 'api'
 import { collectionData } from 'rxfire/firestore'
 import { map } from 'rxjs/operators'
 import { combineLatest } from 'rxjs'
-import { countries } from 'countries'
+import { countries } from 'constants/countries'
 
 function shuffle (array) {
   var currentIndex = array.length; var temporaryValue; var randomIndex
@@ -60,7 +60,8 @@ export const createGame = (user) => {
         name: country.name,
         troops: []
       })),
-      events: []
+      events: [],
+      colors: {}
     })
   })
 }
