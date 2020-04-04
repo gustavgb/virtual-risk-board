@@ -8,7 +8,7 @@ import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
 import { countriesDir } from 'constants/countries'
-import { streamGame, streamHand, getUsers } from 'api/game'
+import { streamGame, streamHand, getUsers, setColors } from 'api/game'
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
 
@@ -222,6 +222,20 @@ class BoardContainer extends Component {
     })
   }
 
+  onChangeColor (color) {
+    const {
+      user: {
+        email
+      }
+    } = this.props
+
+    const {
+      game
+    } = this.state
+
+    setColors(game, { [email]: color })
+  }
+
   renderCountry (country) {
     const {
       width,
@@ -274,8 +288,8 @@ class BoardContainer extends Component {
     }
 
     const joinedCountries = game.countries.map(country => ({ ...countriesDir[country.name], ...country }))
-    const color = Object.keys(game.colors).find(color => game.colors[color] === email) || '#808080'
-    const colorList = colors.filter(c => !game.colors[c])
+    const color = game.colors[email] || '#808080'
+    const colorList = colors.filter(c => !Object.keys(game.colors).find(p => game.colors[p] === c))
 
     return (
       <Root>
@@ -285,9 +299,14 @@ class BoardContainer extends Component {
           </Zone>
           <Zone color='#ddd' bg={trashImg} height='10vh' />
           <Zone color={color}>
-            <Select value={color} placeholder='Vælg brikker' color={color}>
-              <Option color='#808080'>Ingen farve valgt</Option>
-              {colorList.map(c => <Option key={c} color={c} />)}
+            <Select
+              value={color}
+              placeholder='Vælg brikker'
+              color={color}
+              onChange={(e) => this.onChangeColor(e.target.value)}
+            >
+              <Option color='#808080' value=''>Vælg farve</Option>
+              {colorList.map(c => <Option key={c} color={c} value={c} />)}
             </Select>
             <Button>Tag armérer</Button>
           </Zone>

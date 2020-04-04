@@ -5,13 +5,13 @@ import { map } from 'rxjs/operators'
 export const streamGame = (user, gameId) => {
   const gameRef = firestore.collection('games').doc(gameId)
 
-  return doc(gameRef).pipe(map(game => game.data()))
+  return doc(gameRef).pipe(map(game => ({ ...game.data(), id: gameId })))
 }
 
 export const streamHand = (user, gameId) => {
   const handRef = firestore.collection('hands').doc(gameId + user.email)
 
-  return doc(handRef).pipe(map(hand => hand.data()))
+  return doc(handRef).pipe(map(hand => ({ ...hand.data(), id: gameId + user.email })))
 }
 
 export const getUsers = (gameId) => {
@@ -27,5 +27,14 @@ export const getUsers = (gameId) => {
       snapshot.forEach(doc => users.push(doc.data()))
       return users
     })
+  })
+}
+
+export const setColors = (game, colors) => {
+  return firestore.collection('games').doc(game.id).update({
+    colors: {
+      ...game.colors,
+      ...colors
+    }
   })
 }
