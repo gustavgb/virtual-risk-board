@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { auth } from 'api'
 import Login from 'Login'
 import Browse from 'Browse'
-import Canvas from 'Canvas'
+import Board from 'Board'
 
 const Root = styled.div`
 `
@@ -48,7 +48,7 @@ class App extends Component {
         {loaded && user && !joinedGame && (
           <Browse user={user} onJoinGame={(game) => this.setState({ joinedGame: game })} />
         )}
-        {loaded && user && joinedGame && <Canvas joinedGame={joinedGame} user={user} />}
+        {loaded && user && joinedGame && <Board joinedGame={joinedGame} user={user} />}
       </Root>
     )
   }
