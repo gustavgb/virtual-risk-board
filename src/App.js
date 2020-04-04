@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
-import './App.css'
 
-import styled, { ThemeProvider } from 'styled-components'
+import styled from 'styled-components'
 import Canvas from './Canvas'
 
 const Root = styled.div`
@@ -9,8 +8,6 @@ const Root = styled.div`
   width: 100vw;
   height: 100vh;
 `
-
-const theme = {}
 
 class App extends Component {
   constructor (props) {
@@ -51,11 +48,9 @@ class App extends Component {
     } = this.state
 
     return (
-      <ThemeProvider theme={theme}>
-        <Root>
-          <Canvas width={width} height={height} />
-        </Root>
-      </ThemeProvider>
+      <Root>
+        <Canvas width={width} height={height} />
+      </Root>
     )
   }
 }
