@@ -18,20 +18,19 @@ const Root = styled.div`
   }
 `
 
-const CanvasEl = styled.canvas`
+const Board = styled.div`
   background-image: url(${boardImg});
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   width: ${props => props.width}px;
   height: ${props => props.height}px;
-  display: block;
   left: calc(50% - ${props => props.width / 2}px);
   top: calc(50% - ${props => props.height / 2}px);
   position: absolute;
 `
 
-const CanvasContainer = styled.div`
+const Content = styled.div`
   float: left;
   position: relative;
   width: calc(100% - 30rem);
@@ -45,45 +44,47 @@ const Sidebar = styled.div`
   float: left;
 `
 
-class Canvas extends Component {
+const CountryMarker = styled.div`
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid black;
+  background-color: ${props => props.color};
+  left: ${props => props.x}px;
+  top: ${props => props.y}px;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  color: white;
+
+  &:hover {
+    width: 50px;
+    height: 50px;
+  }
+`
+
+class BoardContainer extends Component {
   constructor (props) {
     super(props)
-
-    this.canvas = React.createRef()
-    this.ctx = null
 
     this.state = {
       mouseX: 0,
       mouseY: 0,
       width: 0,
-      height: 0
+      height: 0,
+      unit: 0
     }
+
+    this.boardEl = React.createRef()
 
     this._onMouseDown = this.onMouseDown.bind(this)
     this._onResize = this.onResize.bind(this)
   }
 
   componentDidMount () {
-    if (this.canvas.current) {
-      this.ctx = this.canvas.current.getContext('2d')
-    }
-    this.renderCanvas()
-
     window.addEventListener('mousedown', this._onMouseDown)
     window.addEventListener('resize', this._onResize)
 
     this.onResize()
-  }
-
-  componentDidUpdate (prevProps, prevState) {
-    if (
-      prevState.mouseX !== this.state.mouseX ||
-      prevState.mouseY !== this.state.mouseY ||
-      prevState.width !== this.state.width ||
-      prevState.height !== this.state.height
-    ) {
-      this.renderCanvas()
-    }
   }
 
   onResize () {
@@ -104,47 +105,18 @@ class Canvas extends Component {
 
     this.setState({
       width,
-      height
+      height,
+      unit: width / 1000
     })
   }
 
   onMouseDown (e) {
-    const rect = this.canvas.current.getBoundingClientRect()
+    const rect = this.boardEl.current.getBoundingClientRect()
 
     this.setState({
       mouseX: e.clientX - rect.x,
       mouseY: e.clientY - rect.y
     })
-  }
-
-  renderCanvas () {
-    const ctx = this.ctx
-    const {
-      width,
-      height,
-      mouseX,
-      mouseY
-    } = this.state
-
-    ctx.clearRect(0, 0, width, height)
-
-    countries.forEach(country => {
-      ctx.fillStyle = 'green'
-      ctx.beginPath()
-      ctx.arc(country.x, country.y, 20, 0, 2 * Math.PI)
-      ctx.fill()
-      ctx.stroke()
-      ctx.textBaseline = 'middle'
-      ctx.textAlign = 'center'
-      ctx.font = '15px sans-serif'
-      ctx.fillStyle = 'white'
-      ctx.fillText(country.name, country.x, country.y)
-    })
-    ctx.fillStyle = 'blue'
-    ctx.beginPath()
-    ctx.arc(mouseX, mouseY, 20, 0, 2 * Math.PI)
-    ctx.fill()
-    ctx.stroke()
   }
 
   render () {
@@ -158,12 +130,23 @@ class Canvas extends Component {
     return (
       <Root>
         <Sidebar>x: {mouseX}, y: {mouseY}</Sidebar>
-        <CanvasContainer>
-          <CanvasEl ref={this.canvas} width={width} height={height} />
-        </CanvasContainer>
+        <Content>
+          <Board width={width} height={height} ref={this.boardEl}>
+            {countries.map(country => (
+              <CountryMarker
+                key={country.name}
+                color='green'
+                x={country.x * width}
+                y={country.y * height}
+              >
+                1
+              </CountryMarker>
+            ))}
+          </Board>
+        </Content>
       </Root>
     )
   }
 }
 
-export default Canvas
+export default BoardContainer
