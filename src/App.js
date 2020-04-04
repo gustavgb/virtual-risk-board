@@ -7,6 +7,7 @@ import Login from 'Login'
 import Browse from 'Browse'
 import Board from 'Board'
 import { joinGame } from 'api/browse'
+import { withRouter, Route, Switch } from 'react-router-dom'
 
 const Root = styled.div`
 `
@@ -17,8 +18,7 @@ class App extends Component {
 
     this.state = {
       user: null,
-      loaded: false,
-      joinedGame: null
+      loaded: false
     }
   }
 
@@ -35,17 +35,17 @@ class App extends Component {
 
   onJoinGame (gameId) {
     const { user } = this.state
+    const { history } = this.props
 
     joinGame(user, gameId)
 
-    this.setState({ joinedGame: gameId })
+    history.push(`/${gameId}`)
   }
 
   render () {
     const {
       loaded,
-      user,
-      joinedGame
+      user
     } = this.state
 
     return (
@@ -54,13 +54,25 @@ class App extends Component {
         {loaded && !user && (
           <Login />
         )}
-        {loaded && user && !joinedGame && (
-          <Browse user={user} onJoinGame={this.onJoinGame.bind(this)} />
+        {loaded && user && (
+          <Switch>
+            <Route
+              path='/:gameId'
+              render={({ match: { params } }) => (
+                <Board joinedGame={params.gameId} user={user} />
+              )}
+            />
+            <Route
+              path='/'
+              render={() => (
+                <Browse user={user} onJoinGame={this.onJoinGame.bind(this)} />
+              )}
+            />
+          </Switch>
         )}
-        {loaded && user && joinedGame && <Board joinedGame={joinedGame} user={user} />}
       </Root>
     )
   }
 }
 
-export default App
+export default withRouter(App)

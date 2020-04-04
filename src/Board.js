@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import boardImg from 'images/board.svg'
 import bgImg from 'images/bg.jpg'
+import cardBackImg from 'images/card_back.png'
 import { countries } from 'countries'
 import { streamGame, streamHand, getUsers } from 'api/game'
 
@@ -19,15 +20,18 @@ const Root = styled.div`
   }
 `
 
-const Board = styled.div`
+const Board = styled.div.attrs(props => ({
+  style: {
+    width: props.width + 'px',
+    height: props.height + 'px',
+    left: `calc(50% - ${props.width / 2}px)`,
+    top: `calc(50% - ${props.height / 2}px)`
+  }
+}))`
   background-image: url(${boardImg});
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  width: ${props => props.width}px;
-  height: ${props => props.height}px;
-  left: calc(50% - ${props => props.width / 2}px);
-  top: calc(50% - ${props => props.height / 2}px);
   position: absolute;
 `
 
@@ -45,13 +49,16 @@ const Sidebar = styled.div`
   float: left;
 `
 
-const CountryMarker = styled.div`
+const CountryMarker = styled.div.attrs(props => ({
+  style: {
+    left: props.x + 'px',
+    top: props.y + 'px'
+  }
+}))`
   border-radius: 50%;
   transform: translate(-50%, -50%);
   border: 1px solid black;
   background-color: ${props => props.color};
-  left: ${props => props.x}px;
-  top: ${props => props.y}px;
   position: absolute;
   width: 2.5vw;
   height: 2.5vw;
@@ -64,6 +71,18 @@ const CountryMarker = styled.div`
     width: 3vw;
     height: 3vw;
   }
+`
+
+const Pile = styled.div`
+  background-color: #751b18;
+  background-image: url(${cardBackImg});
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  border: 2px solid black;
+  box-shadow: 0px 0px 10px 0px black;
+  height: 20rem;
+  width: 100%;
 `
 
 class BoardContainer extends Component {
@@ -117,6 +136,11 @@ class BoardContainer extends Component {
     this.onResize()
   }
 
+  componentWillUnmount () {
+    window.removeEventListener('mousedown', this._onMouseDown)
+    window.removeEventListener('resize', this._onResize)
+  }
+
   onResize () {
     const innerWidth = window.innerWidth - 300
     const innerHeight = window.innerHeight
@@ -162,7 +186,9 @@ class BoardContainer extends Component {
 
     return (
       <Root>
-        <Sidebar />
+        <Sidebar>
+          <Pile />
+        </Sidebar>
         <Content>
           <Board width={width} height={height} ref={this.boardEl}>
             {countries.map(country => (
