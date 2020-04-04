@@ -52,13 +52,16 @@ const CountryMarker = styled.div`
   left: ${props => props.x}px;
   top: ${props => props.y}px;
   position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 2.5vw;
+  height: 2.5vw;
   color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   &:hover {
-    width: 50px;
-    height: 50px;
+    width: 3vw;
+    height: 3vw;
   }
 `
 
@@ -122,14 +125,12 @@ class BoardContainer extends Component {
   render () {
     const {
       width,
-      height,
-      mouseX,
-      mouseY
+      height
     } = this.state
 
     return (
       <Root>
-        <Sidebar>x: {mouseX}, y: {mouseY}</Sidebar>
+        <Sidebar />
         <Content>
           <Board width={width} height={height} ref={this.boardEl}>
             {countries.map(country => (

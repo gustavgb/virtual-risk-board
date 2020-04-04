@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { streamGames, addMember, removeMember, createGame, deleteGame, changeTitle } from 'api/games'
+import { streamGames, addMember, removeMember, createGame, deleteGame, changeTitle, startGame } from 'api/games'
 import styled from 'styled-components'
 import dateFormat from 'dateformat'
 import { auth } from 'api'
@@ -109,14 +109,18 @@ class Browse extends Component {
               </p>
               <ul>
                 {game.members.map(member => (
-                  <li key={member}>{member} <button onClick={() => this.removeMember(game.id, member)}>x</button></li>
+                  <li key={member}>
+                    {member}&nbsp;
+                    {!game.started && <button onClick={() => this.removeMember(game.id, member)}>x</button>}
+                  </li>
                 ))}
               </ul>
               <button onClick={() => this.addMember(game.id)}>Tilføj spiller</button>
               {user.email === game.creator && (
                 <button onClick={() => deleteGame(game.id)}>Slet spil</button>
               )}
-              <Button onClick={() => onJoinGame(game.id)}>Join</Button>
+              {game.started && <Button onClick={() => onJoinGame(game.id)}>Join</Button>}
+              {!game.started && <Button onClick={() => startGame(game.id)}>Start spil</Button>}
             </Game>
           ))}
         </Root>
