@@ -1,6 +1,7 @@
 import { database } from 'api'
 import { object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
+import { fromString } from 'makeId'
 
 const mapGame = (game) => ({
   colors: {},
@@ -12,8 +13,11 @@ const mapGame = (game) => ({
   initialCountries: [],
   ...game,
   countries: (game.countries || []).map(country => ({
-    troops: [],
-    ...country
+    troops: {},
+    ...country,
+    troopsList: Object.keys(country.troops || {}).map(key => ({
+      ...country.troops[key]
+    }))
   }))
 })
 
@@ -78,5 +82,41 @@ export const takeCard = (gameId, userId) => {
       hand.cards.push(cardType)
     }
     return hand
+  })
+}
+
+export const placeArmy = (gameId, userId, country) => {
+  return database.ref(`games/${gameId}`).transaction(game => {
+    if (game) {
+      if (!game.colors) {
+        game.colors = {}
+      }
+
+      const color = game.colors[userId]
+
+      if (color) {
+        game.countries = game.countries.map(c => {
+          if (country === c.name) {
+            const troops = c.troops || {}
+            const key = fromString(color)
+            const prevAmount = troops[key] ? troops[key].amount : 0
+
+            return {
+              ...c,
+              troops: {
+                ...troops,
+                [key]: {
+                  color,
+                  amount: prevAmount + 1
+                }
+              }
+            }
+          }
+
+          return c
+        })
+      }
+    }
+    return game
   })
 }

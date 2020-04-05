@@ -8,8 +8,9 @@ import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
 import backIcon from 'images/back.png'
+import armyImg from 'images/army.png'
 import { countriesDir } from 'constants/countries'
-import { streamGame, streamHand, getUsers, setColors, takeCard } from 'api/game'
+import { streamGame, streamHand, getUsers, setColors, takeCard, placeArmy } from 'api/game'
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
 
@@ -163,6 +164,22 @@ const CountryListItem = styled.li`
   color: ${props => props.done ? '#0f0' : 'white'};
 `
 
+const ActionContainer = styled.div.attrs(props => ({
+  style: {
+    left: props.x,
+    top: props.y
+  }
+}))`
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+
+  & > * {
+    max-height: 10rem;
+    max-width: 10rem;
+  }
+`
+
 class BoardContainer extends Component {
   constructor (props) {
     super(props)
@@ -174,7 +191,8 @@ class BoardContainer extends Component {
       mouseX: 0,
       mouseY: 0,
       width: 0,
-      height: 0
+      height: 0,
+      action: null
     }
 
     this.boardEl = React.createRef()
@@ -183,6 +201,7 @@ class BoardContainer extends Component {
     this.streamHand = null
 
     this._onResize = this.onResize.bind(this)
+    this._onMouseMove = this.onMouseMove.bind(this)
   }
 
   componentDidMount () {
@@ -207,6 +226,7 @@ class BoardContainer extends Component {
     })
 
     window.addEventListener('resize', this._onResize)
+    window.addEventListener('mousemove', this._onMouseMove)
 
     this.onResize()
   }
@@ -216,6 +236,7 @@ class BoardContainer extends Component {
     this.streamHand.unsubscribe()
 
     window.removeEventListener('resize', this._onResize)
+    window.removeEventListener('mousemove', this._onMouseMove)
   }
 
   getCardBg (card) {
@@ -228,6 +249,15 @@ class BoardContainer extends Component {
         return card2Img
       default:
         return ''
+    }
+  }
+
+  onMouseMove (e) {
+    if (this.state.action) {
+      this.setState({
+        mouseX: e.clientX,
+        mouseY: e.clientY
+      })
     }
   }
 
@@ -283,35 +313,91 @@ class BoardContainer extends Component {
     }
   }
 
+  onTakeArmy () {
+    this.setState({
+      action: 'TAKE_ARMY'
+    })
+  }
+
+  onClickCountry (countryName, troop) {
+    const {
+      action,
+      game: {
+        id
+      }
+    } = this.state
+
+    const {
+      user: {
+        uid
+      }
+    } = this.props
+
+    switch (action) {
+      case 'TAKE_ARMY':
+        placeArmy(id, uid, countryName)
+        this.setState({
+          action: null
+        })
+        break
+      default:
+        console.log('Click country')
+    }
+  }
+
   renderCountry (country) {
     const {
       width,
       height
     } = this.state
-    const groups = country.troops.length
+    const groups = country.troopsList.length - 1
 
     return (
       <React.Fragment key={country.name}>
-        {country.troops.map((troop, index) => (
+        {country.troopsList.map((troop, index) => (
           <CountryMarker
             key={country.name + index}
-            color='green'
-            x={(country.x - (groups / 2) * 0.02 + 0.04 * index) * width}
+            color={troop.color}
+            x={(country.x - (groups / 2) * 0.04 + 0.04 * index) * width}
             y={country.y * height}
+            onClick={() => this.onClickCountry(country.name, troop.color)}
           >
             {troop.amount}
           </CountryMarker>
         ))}
-        {groups === 0 && (
+        {groups === -1 && (
           <CountryMarker
             key={country.name + 0}
             color='grey'
             x={country.x * width}
             y={country.y * height}
+            onClick={() => this.onClickCountry(country.name, null)}
           />
         )}
       </React.Fragment>
     )
+  }
+
+  renderAction () {
+    const {
+      mouseX,
+      mouseY,
+      action
+    } = this.state
+
+    switch (action) {
+      case 'TAKE_ARMY':
+        return (
+          <ActionContainer
+            x={mouseX}
+            y={mouseY}
+          >
+            <img src={armyImg} alt='Army' />
+          </ActionContainer>
+        )
+      default:
+        return null
+    }
   }
 
   render () {
@@ -327,8 +413,6 @@ class BoardContainer extends Component {
         uid
       }
     } = this.props
-
-    console.log(users, game, hand)
 
     if (!game || !users || !hand) {
       return 'Loading...'
@@ -349,7 +433,7 @@ class BoardContainer extends Component {
             </Link>
           </Zone>
           <Zone color='#ddd' bg={trashImg} height='10vh' />
-          <Zone color={color}>
+          <Zone color={color} bg={armyImg}>
             <Select
               value={color}
               placeholder='Vælg brikker'
@@ -359,7 +443,7 @@ class BoardContainer extends Component {
               <Option color='#808080' value=''>Vælg farve</Option>
               {colorList.map(c => <Option key={c} color={c} value={c} />)}
             </Select>
-            <Button>Tag armérer</Button>
+            <Button onClick={this.onTakeArmy.bind(this)}>Tag armérer</Button>
           </Zone>
           <Zone bg={cardBackImg} color='#751b18' onClick={this.onTakeCard.bind(this)} />
           <Hand>
@@ -387,6 +471,7 @@ class BoardContainer extends Component {
             {joinedCountries.map(country => this.renderCountry(country))}
           </Board>
         </Content>
+        {this.renderAction()}
       </Root>
     )
   }
