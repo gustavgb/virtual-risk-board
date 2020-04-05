@@ -49,6 +49,9 @@ const CodeBox = styled.input.attrs({
   type: 'text'
 })`
   padding: 1rem;
+  display: block;
+  width: 100%;
+  margin: 1rem 0;
 `
 
 class Browse extends Component {
@@ -66,7 +69,6 @@ class Browse extends Component {
   componentDidMount () {
     const { user } = this.props
     this.streamMyGames = streamMyGames(user.uid).subscribe(games => {
-      console.log(games)
       this.setState({ games })
     })
   }
@@ -81,8 +83,6 @@ class Browse extends Component {
       user
     } = this.props
 
-    console.log(games)
-
     return (
       <>
         <Top>
@@ -96,9 +96,8 @@ class Browse extends Component {
           {games.map(game => (
             <Game key={game.id}>
               <h2 onClick={() => changeTitle(game.id)}>{game.title}</h2>
-              Del denne kode med vennerne for at lade dem joine!<br />
+              Del denne kode med vennerne for at lade dem joine!
               <CodeBox value={game.id} onChange={() => null} />
-              <br />
               <button onClick={() => deleteGame(game)}>Slet spil</button>
               <Button onClick={() => onJoinGame(game.id)}>Join</Button>
             </Game>
