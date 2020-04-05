@@ -4,6 +4,8 @@ import App from './App'
 import { createGlobalStyle, ThemeProvider } from 'styled-components'
 import { BrowserRouter } from 'react-router-dom'
 import theme from 'theme'
+import store from 'store'
+import { Provider } from 'react-redux'
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -32,12 +34,14 @@ const GlobalStyle = createGlobalStyle`
 
 ReactDOM.render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <GlobalStyle />
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <GlobalStyle />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 )

@@ -1,40 +1,66 @@
-import { firestore } from 'api'
-import { doc } from 'rxfire/firestore'
+import { database } from 'api'
+import { object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 
-export const streamGame = (user, gameId) => {
-  const gameRef = firestore.collection('games').doc(gameId)
+const mapGame = (game) => ({
+  colors: {},
+  members: [],
+  events: [],
+  creator: null,
+  title: null,
+  id: null,
+  ...game,
+  countries: (game.countries || []).map(country => ({
+    troops: [],
+    ...country
+  }))
+})
 
-  return doc(gameRef).pipe(map(game => ({ ...game.data(), id: gameId })))
+const mapHand = (hand) => ({
+  cards: [],
+  player: null,
+  game: null,
+  id: null,
+  ...hand
+})
+
+export const streamGame = (user, gameId) => {
+  const gameRef = database.ref(`games/${gameId}`)
+
+  return object(gameRef).pipe(map(game => mapGame({ ...game.snapshot.val(), id: gameId })))
 }
 
 export const streamHand = (user, gameId) => {
-  const handRef = firestore.collection('hands').doc(gameId + user.email)
+  const handRef = database.ref(`hands/${gameId}${user.uid}`)
 
-  return doc(handRef).pipe(map(hand => ({ ...hand.data(), id: gameId + user.email })))
+  return object(handRef).pipe(map(hand => mapHand({ ...hand.snapshot.val(), id: gameId + user.uid })))
 }
 
 export const getUsers = (gameId) => {
-  return firestore.collection('games').doc(gameId).get().then(doc => {
+  return database.ref(`games/${gameId}`).once('value').then(doc => {
     if (!doc.exists) {
       throw new Error('Document does not exist!')
     }
 
-    const usersRef = firestore.collection('users').where('email', 'in', doc.data().members)
-
-    return usersRef.get().then(snapshot => {
-      const users = []
-      snapshot.forEach(doc => users.push(doc.data()))
-      return users
-    })
+    const game = doc.val()
+    return Promise.all(
+      (game.members || []).map(member => database.ref(`users/${member}`).once('value'))
+    ).then(results => results.map(snap => snap.val()))
   })
 }
 
-export const setColors = (game, colors) => {
-  return firestore.collection('games').doc(game.id).update({
-    colors: {
-      ...game.colors,
-      ...colors
+export const setColors = (gameId, colors) => {
+  return database.ref(`games/${gameId}`).transaction(game => {
+    if (game) {
+      if (!game.colors) {
+        game.colors = {}
+      }
+
+      game.colors = {
+        ...game.colors,
+        ...colors
+      }
     }
+    return game
   })
 }

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 
-import { auth, firestore } from 'api'
 import styled from 'styled-components'
+import { register, login } from 'api/login'
 
 const Root = styled.div`
   width: 30rem;
@@ -57,19 +57,14 @@ const Login = () => {
     // eslint-disable-next-line
   }, [mode])
 
-  const login = useCallback(() => {
-    auth.signInWithEmailAndPassword(email, password)
+  const onLogin = useCallback(() => {
+    login(email, password)
       .catch(err => setError(err.code))
   }, [email, password])
 
-  const register = useCallback(() => {
-    Promise.all([
-      auth.createUserWithEmailAndPassword(email, password),
-      firestore.collection('users').doc(email).set({
-        email,
-        name
-      })
-    ]).catch(err => setError(err.code))
+  const onRegister = useCallback(() => {
+    register(name, email, password)
+      .catch(err => setError(err.code))
   }, [email, password, name])
 
   const submit = useCallback((e) => {
@@ -77,13 +72,13 @@ const Login = () => {
 
     switch (mode) {
       case 'LOGIN':
-        return login()
+        return onLogin()
       case 'REGISTER':
-        return register()
+        return onRegister()
       default:
         console.warn('Mode ' + mode + ' invalid')
     }
-  }, [login, mode, register])
+  }, [onLogin, mode, onRegister])
 
   return (
     <Root>

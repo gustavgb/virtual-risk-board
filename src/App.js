@@ -8,6 +8,7 @@ import Browse from 'Browse'
 import Board from 'Board'
 import { joinGame } from 'api/browse'
 import { withRouter, Route, Switch } from 'react-router-dom'
+import { connect } from 'react-redux'
 
 const Root = styled.div`
 `
@@ -38,8 +39,7 @@ class App extends Component {
     const { history } = this.props
 
     joinGame(user, gameId)
-
-    history.push(`/${gameId}`)
+      .then(() => history.push(`/${gameId}`))
   }
 
   render () {
@@ -75,4 +75,8 @@ class App extends Component {
   }
 }
 
-export default withRouter(App)
+export default connect(
+  state => ({
+    user: state.user
+  })
+)(withRouter(App))

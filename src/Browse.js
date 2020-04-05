@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
-import { streamGames, addMember, removeMember, createGame, deleteGame, changeTitle } from 'api/browse'
+import { streamMyGames, createGame, deleteGame, changeTitle } from 'api/browse'
 import styled from 'styled-components'
-import dateFormat from 'dateformat'
-import { auth } from 'api'
+import { logout } from 'api/login'
 
 const Root = styled.div`
   width: 50rem;
@@ -46,6 +45,12 @@ const Error = styled.p`
   color: red;
 `
 
+const CodeBox = styled.input.attrs({
+  type: 'text'
+})`
+  padding: 1rem;
+`
+
 class Browse extends Component {
   constructor (props) {
     super(props)
@@ -55,28 +60,15 @@ class Browse extends Component {
       error: null
     }
 
-    this.streamGames = null
+    this.streamMyGames = null
   }
 
   componentDidMount () {
     const { user } = this.props
-    this.streamGames = streamGames(user.email).subscribe(games => {
+    this.streamMyGames = streamMyGames(user.uid).subscribe(games => {
+      console.log(games)
       this.setState({ games })
     })
-  }
-
-  addMember (game) {
-    addMember(game)
-      .catch(err => this.setState({
-        error: err
-      }))
-  }
-
-  removeMember (game, id) {
-    removeMember(game, id)
-      .catch(err => this.setState({
-        error: err
-      }))
   }
 
   render () {
@@ -89,11 +81,13 @@ class Browse extends Component {
       user
     } = this.props
 
+    console.log(games)
+
     return (
       <>
         <Top>
           <span>Logget ind som {user.name} ({user.email})</span>
-          <Button onClick={() => auth.signOut()}>Log ud</Button>
+          <Button onClick={() => logout()}>Log ud</Button>
         </Top>
         {error && <Error>{error}</Error>}
         <Root>
@@ -101,24 +95,11 @@ class Browse extends Component {
           <button onClick={() => createGame(user)}>Nyt spil</button>
           {games.map(game => (
             <Game key={game.id}>
-              <h2 onClick={() => changeTitle(game.id)}>{game.title} ({game.started ? 'I gang' : 'Nyt'})</h2>
-              <p>Oprettet: {dateFormat(game.creationDate.seconds * 1000, 'dddd, mmmm dS, yyyy, h:MM:ss TT')}</p>
-              <p>Oprettet af {game.creator}</p>
-              <p>
-                Spillere:&nbsp;
-                <button onClick={() => this.addMember(game.id)}>Tilføj spiller</button>
-              </p>
-              <ul>
-                {game.members.map(member => (
-                  <li key={member}>
-                    {member}&nbsp;
-                    <button onClick={() => this.removeMember(game.id, member)}>x</button>
-                  </li>
-                ))}
-              </ul>
-              {user.email === game.creator && (
-                <button onClick={() => deleteGame(game.id)}>Slet spil</button>
-              )}
+              <h2 onClick={() => changeTitle(game.id)}>{game.title}</h2>
+              Del denne kode med vennerne for at lade dem joine!<br />
+              <CodeBox value={game.id} onChange={() => null} />
+              <br />
+              <button onClick={() => deleteGame(game)}>Slet spil</button>
               <Button onClick={() => onJoinGame(game.id)}>Join</Button>
             </Game>
           ))}

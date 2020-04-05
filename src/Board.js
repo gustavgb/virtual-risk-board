@@ -225,7 +225,7 @@ class BoardContainer extends Component {
   onChangeColor (color) {
     const {
       user: {
-        email
+        uid
       }
     } = this.props
 
@@ -233,7 +233,7 @@ class BoardContainer extends Component {
       game
     } = this.state
 
-    setColors(game, { [email]: color })
+    setColors(game.id, { [uid]: color })
   }
 
   renderCountry (country) {
@@ -277,7 +277,7 @@ class BoardContainer extends Component {
     } = this.state
     const {
       user: {
-        email
+        uid
       }
     } = this.props
 
@@ -288,7 +288,7 @@ class BoardContainer extends Component {
     }
 
     const joinedCountries = game.countries.map(country => ({ ...countriesDir[country.name], ...country }))
-    const color = game.colors[email] || '#808080'
+    const color = game.colors[uid] || '#808080'
     const colorList = colors.filter(c => !Object.keys(game.colors).find(p => game.colors[p] === c))
 
     return (
