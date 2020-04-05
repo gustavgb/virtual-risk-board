@@ -73,6 +73,10 @@ class Browse extends Component {
     })
   }
 
+  componentWillUnmount () {
+    this.streamMyGames.unsubscribe()
+  }
+
   render () {
     const {
       games,

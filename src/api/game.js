@@ -9,6 +9,7 @@ const mapGame = (game) => ({
   creator: null,
   title: null,
   id: null,
+  initialCountries: [],
   ...game,
   countries: (game.countries || []).map(country => ({
     troops: [],
@@ -62,5 +63,20 @@ export const setColors = (gameId, colors) => {
       }
     }
     return game
+  })
+}
+
+export const takeCard = (gameId, userId) => {
+  const cardType = Math.floor(Math.random() * 3)
+
+  return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
+    if (hand) {
+      if (!hand.cards) {
+        hand.cards = []
+      }
+
+      hand.cards.push(cardType)
+    }
+    return hand
   })
 }
