@@ -1,32 +1,35 @@
 import { database } from 'api'
-import { object } from 'rxfire/database'
+import { list } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 import { countries } from 'constants/countries'
 import { v4 as uuid } from 'uuid'
 
-// function shuffle (array) {
-//   var currentIndex = array.length; var temporaryValue; var randomIndex
+function shuffle (array) {
+  var currentIndex = array.length; var temporaryValue; var randomIndex
 
-//   // While there remain elements to shuffle...
-//   while (currentIndex !== 0) {
-//     // Pick a remaining element...
-//     randomIndex = Math.floor(Math.random() * currentIndex)
-//     currentIndex -= 1
+  // While there remain elements to shuffle...
+  while (currentIndex !== 0) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex)
+    currentIndex -= 1
 
-//     // And swap it with the current element.
-//     temporaryValue = array[currentIndex]
-//     array[currentIndex] = array[randomIndex]
-//     array[randomIndex] = temporaryValue
-//   }
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex]
+    array[currentIndex] = array[randomIndex]
+    array[randomIndex] = temporaryValue
+  }
 
-//   return array
-// }
+  return array
+}
 
 export const streamMyGames = (id) => {
-  return object(database.ref('games').orderByChild('creator').equalTo(id))
+  return list(database.ref('games').orderByChild('creator').equalTo(id))
     .pipe(
-      map(games => games.snapshot.val() || {}),
-      map(games => Object.keys(games).map(key => games[key]))
+      map(games => {
+        const result = []
+        games.forEach(game => result.push(game.snapshot.val()))
+        return result
+      })
     )
 }
 
@@ -64,12 +67,35 @@ export const joinGame = (user, gameId) => {
     return hand
   })
     .then(database.ref(`games/${gameId}`).transaction(game => {
+      let changedMembers = false
+
       if (!game.members) {
         game.members = []
+        changedMembers = true
       }
 
       if (!game.members.find(member => member === user.uid)) {
         game.members.push(user.uid)
+        changedMembers = true
+      }
+
+      if (changedMembers) {
+        const countriesShuffled = shuffle(countries.map(country => country.name))
+        let turn = 0
+        game.initialCountries = countriesShuffled.reduce((acc, country) => {
+          turn = (turn + 1) % game.members.length
+          return {
+            ...acc,
+            [game.members[turn]]: [
+              ...(acc[game.members[turn]] || []),
+              country
+            ]
+          }
+        }, {})
+      }
+
+      if (!game.initialCountries) {
+        game.initialCountries = []
       }
 
       return game
