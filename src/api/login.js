@@ -22,7 +22,8 @@ auth.onAuthStateChanged(function (user) {
 export const register = (name, email, password) => {
   loading = true
   return auth.createUserWithEmailAndPassword(email, password)
-    .then(user => {
+    .then(credential => {
+      const user = credential.user
       return database.ref('users/' + user.uid).set({
         ...defaultUser,
         email,
@@ -44,17 +45,17 @@ export const login = (email, password) => {
   return auth.signInWithEmailAndPassword(email, password)
     .then(credential => {
       const user = credential.user
-      const ref = database.ref('users/' + user.uid)
-      return ref.once('value')
-        .then(doc => {
-          if (!doc.exists()) {
-            return ref.set({
-              ...defaultUser,
-              email,
-              name: email
-            })
+      database.ref('users/' + user.uid).transaction(user => {
+        if (!user) {
+          user = {
+            ...defaultUser,
+            email,
+            name: email
           }
-        })
+        }
+
+        return user
+      })
         .then(() => {
           loading = false
           store.dispatch({

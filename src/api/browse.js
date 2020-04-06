@@ -46,12 +46,14 @@ export const createGame = (user) => {
     id,
     title,
     creator: user.uid,
+    colors: {}
+  })
+  database.ref(`boards/${id}`).set({
     countries: countries.map(country => ({
       name: country.name,
       armies: []
     })),
-    events: [],
-    colors: {}
+    events: []
   })
 }
 
@@ -110,6 +112,7 @@ export const deleteGame = (game) => {
   if (window.confirm('Er du sikker? Det kan ikke laves om.')) {
     return Promise.all([
       database.ref(`games/${game.id}`).remove(),
+      database.ref(`boards/${game.id}`).remove(),
       ...(game.members || []).map(member => database.ref(`hands/${game.id}${member}`).remove())
     ])
   }
@@ -126,63 +129,3 @@ export const changeTitle = (gameId) => {
     title
   })
 }
-
-// export const startGame = (gameId) => {
-//   const gameRef = firestore.collection('games').doc(gameId)
-//   const boardRef = firestore.collection('boards').doc(gameId)
-
-//   return firestore.runTransaction(transaction => {
-//     return transaction.get(gameRef).then(doc => {
-//       if (!doc.exists) {
-//         throw new Error('Document does not exist')
-//       }
-
-//       const game = doc.data()
-
-//       if (game.started) {
-//         throw new Error('Game already started')
-//       }
-
-//       const countryFlatList = shuffle(countries.map(country => country.name))
-//       const countryShares = countryFlatList.reduce((acc, country) => {
-//         const turn = acc.turn
-//         return {
-//           ...acc,
-//           turn: (turn + 1) % game.members.length,
-//           [country]: game.members[turn]
-//         }
-//       }, {
-//         turn: 0
-//       })
-//       const hands = game.members.map(member => ({
-//         player: member,
-//         game: gameId,
-//         id: gameId + member
-//       }))
-
-//       transaction.update(gameRef, {
-//         started: true
-//       })
-
-//       transaction.set(boardRef, {
-//         countries: countries.map(country => ({
-//           name: country.name,
-//           armies: {
-//             [countryShares[country.name]]: 1
-//           }
-//         })),
-//         hands,
-//         events: []
-//       })
-
-//       hands.forEach(hand => {
-//         const handRef = firestore.collection('hands').doc(hand.id)
-//         transaction.set(handRef, {
-//           player: hand.player,
-//           game: hand.game,
-//           cards: []
-//         })
-//       })
-//     })
-//   })
-// }

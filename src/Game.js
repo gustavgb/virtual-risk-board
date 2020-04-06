@@ -5,7 +5,7 @@ import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
 import cardBackImg from 'images/card_back.png'
-import { streamGame, streamHand, getUsers } from 'api/game'
+import { streamState, getUsers } from 'api/game'
 import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
 import DisplayedCards from 'DisplayedCards'
@@ -90,8 +90,7 @@ class GameContainer extends Component {
 
     this.boardEl = React.createRef()
 
-    this.streamGame = null
-    this.streamHand = null
+    this.streamState = null
 
     this._onMouseMove = this.onMouseMove.bind(this)
   }
@@ -103,16 +102,8 @@ class GameContainer extends Component {
 
     joinGame(user, joinedGame)
       .then(() => {
-        this.streamGame = streamGame(user, joinedGame).subscribe(game => {
-          this.setState({
-            game
-          })
-        })
-
-        this.streamHand = streamHand(user, joinedGame).subscribe(hand => {
-          this.setState({
-            hand
-          })
+        this.streamState = streamState(user, joinedGame).subscribe(state => {
+          this.setState(state)
         })
 
         getUsers(joinedGame).then(users => {
@@ -126,12 +117,8 @@ class GameContainer extends Component {
   }
 
   componentWillUnmount () {
-    if (this.streamGame) {
-      this.streamGame.unsubscribe()
-    }
-
-    if (this.streamHand) {
-      this.streamHand.unsubscribe()
+    if (this.streamState) {
+      this.streamState.unsubscribe()
     }
 
     window.removeEventListener('mousemove', this._onMouseMove)

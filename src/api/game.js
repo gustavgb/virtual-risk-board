@@ -2,6 +2,7 @@ import { database } from 'api'
 import { object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 import { fromString } from 'makeId'
+import { combineLatest } from 'rxjs'
 
 const mapGame = (game) => ({
   colors: {},
@@ -34,16 +35,29 @@ const mapHand = (hand) => ({
   ...hand
 })
 
-export const streamGame = (user, gameId) => {
+export const streamState = (user, gameId) => {
   const gameRef = database.ref(`games/${gameId}`)
-
-  return object(gameRef).pipe(map(game => mapGame({ ...game.snapshot.val(), id: gameId, timestamp: Date.now() })))
-}
-
-export const streamHand = (user, gameId) => {
+  const boardRef = database.ref(`boards/${gameId}`)
   const handRef = database.ref(`hands/${gameId}${user.uid}`)
 
-  return object(handRef).pipe(map(hand => mapHand({ ...hand.snapshot.val(), id: gameId + user.uid })))
+  return combineLatest(
+    object(gameRef),
+    object(boardRef),
+    object(handRef)
+  ).pipe(
+    map(([game, board, hand]) => ({
+      game: mapGame({
+        ...game.snapshot.val(),
+        ...board.snapshot.val(),
+        id: gameId,
+        timestamp: Date.now()
+      }),
+      hand: mapHand({
+        ...hand.snapshot.val(),
+        id: gameId + user.uid
+      })
+    }))
+  )
 }
 
 export const getUsers = (gameId) => {
@@ -93,48 +107,38 @@ export const takeCard = (gameId, userId) => {
 }
 
 export const placeArmy = (gameId, userId, country, color, amount = 1) => {
-  return database.ref(`games/${gameId}`).transaction(game => {
-    if (game) {
-      if (!color) {
-        if (!game.colors) {
-          game.colors = {}
-        }
+  return database.ref(`boards/${gameId}`).transaction(board => {
+    if (board && color) {
+      board.countries = board.countries.map(c => {
+        if (country === c.name) {
+          const armies = c.armies || {}
+          const key = fromString(color)
+          const prevAmount = armies[key] ? armies[key].amount : 0
 
-        color = game.colors[userId]
-      }
-
-      if (color) {
-        game.countries = game.countries.map(c => {
-          if (country === c.name) {
-            const armies = c.armies || {}
-            const key = fromString(color)
-            const prevAmount = armies[key] ? armies[key].amount : 0
-
-            return {
-              ...c,
-              armies: {
-                ...armies,
-                [key]: {
-                  color,
-                  amount: prevAmount + amount
-                }
+          return {
+            ...c,
+            armies: {
+              ...armies,
+              [key]: {
+                color,
+                amount: prevAmount + amount
               }
             }
           }
+        }
 
-          return c
-        })
-      }
+        return c
+      })
     }
-    return game
+    return board
   })
 }
 
 export const removeArmy = (gameId, userId, country, armyId, amount = 1) => {
-  return database.ref(`games/${gameId}`).transaction(game => {
-    if (game) {
+  return database.ref(`boards/${gameId}`).transaction(board => {
+    if (board) {
       if (armyId) {
-        game.countries = game.countries.map(c => {
+        board.countries = board.countries.map(c => {
           if (country === c.name) {
             const armies = c.armies || {}
             const prevAmount = armies[armyId] ? armies[armyId].amount : 0
@@ -165,7 +169,7 @@ export const removeArmy = (gameId, userId, country, armyId, amount = 1) => {
         })
       }
     }
-    return game
+    return board
   })
 }
 
