@@ -160,9 +160,9 @@ class SidebarContainer extends Component {
   }
 
   pushToLog (code, content) {
-    const { game: { id } } = this.props
+    const { game: { id }, user: { uid } } = this.props
 
-    pushToLog(id, code, content)
+    pushToLog(id, uid, code, content)
   }
 
   onChangeColor (color) {

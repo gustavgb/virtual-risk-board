@@ -263,7 +263,7 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
     }))
 }
 
-export const pushToLog = (gameId, code, content) => {
+export const pushToLog = (gameId, userId, code, content) => {
   database.ref(`events/${gameId}`).transaction(events => {
     if (!events) {
       events = []
@@ -277,7 +277,8 @@ export const pushToLog = (gameId, code, content) => {
       timestamp: now,
       expire: now + 7500,
       content,
-      code
+      code,
+      userId
     })
 
     return events
