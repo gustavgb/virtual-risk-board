@@ -212,7 +212,7 @@ class GameContainer extends Component {
 
     return (
       <Root>
-        <DropZoneBlocker active={action.type === 'MOVE_ARMY'} />
+        <DropZoneBlocker active={action.type === 'MOVE_ARMY'} onContextMenu={e => e.preventDefault()} />
         {game.displayedCards.list.length > 0 && (
           <DisplayedCards
             displayedCards={game.displayedCards}
