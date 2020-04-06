@@ -61,7 +61,7 @@ class EventLog extends Component {
         if (options.origin) {
           return `${options.user} har flyttet ${options.amount} armér${options.amount > 1 ? 'er' : ''} fra ${options.origin} til ${options.destination}`
         }
-        return `${options.user} har placeret ${options.amount} armér${options.amount > 1 ? 'er' : ''} i ${options.country}`
+        return `${options.user} har placeret ${options.amount} armér${options.amount > 1 ? 'er' : ''} i ${options.destination}`
       case 'DISCARD_ARMY':
         return `${options.user} har fjernet ${options.amount} armér${options.amount > 1 ? 'er' : ''} fra ${options.country}`
       case 'CHANGE_COLOR':
