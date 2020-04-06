@@ -20,6 +20,19 @@ const Board = styled.div.attrs(props => ({
   position: absolute;
 `
 
+const CountryLabel = styled.div`
+  content: ${props => props.label};
+  position: absolute;
+  top: -2vw;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  display: none;
+  white-space: nowrap;
+`
+
 const CountryMarker = styled.div.attrs(props => ({
   style: {
     left: props.x + 'px',
@@ -39,6 +52,10 @@ const CountryMarker = styled.div.attrs(props => ({
   align-items: center;
   user-select: none;
   z-index: ${props => props.popout ? 200 : 0};
+
+  &:hover > ${CountryLabel} {
+    display: block;
+  }
 
   ${props => props.clickable && css`
     cursor: pointer;
@@ -188,6 +205,7 @@ class BoardContainer extends Component {
             clickable
           >
             {army.amount}
+            <CountryLabel>{country.name}</CountryLabel>
           </CountryMarker>
         ))}
         {groups === -1 && (
@@ -199,7 +217,9 @@ class BoardContainer extends Component {
             onClick={() => this.onClickCountry(country.name, null)}
             popout={pop}
             clickable={pop}
-          />
+          >
+            <CountryLabel>{country.name}</CountryLabel>
+          </CountryMarker>
         )}
       </React.Fragment>
     )

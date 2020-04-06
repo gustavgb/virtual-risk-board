@@ -9,6 +9,7 @@ import armyImg from 'images/army.png'
 import { setColors, takeCard, displayCard } from 'api/game'
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
+import { fromString } from 'makeId'
 
 const Sidebar = styled.div`
   width: 20vw;
@@ -253,6 +254,7 @@ class SidebarContainer extends Component {
       },
       game: {
         initialCountries,
+        countries,
         colors: gameColors,
         displayedCards
       },
@@ -264,7 +266,9 @@ class SidebarContainer extends Component {
 
     const color = gameColors[uid] || '#808080'
     const colorList = colors.filter(c => !Object.keys(gameColors).find(p => gameColors[p] === c))
-    const myCountries = initialCountries[uid]
+    const myInitialCountries = initialCountries[uid]
+    const myColorId = fromString(color)
+    const myCountries = countries.filter(country => !!country.armies[myColorId]).map(country => country.name)
     const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
 
     return (
@@ -329,15 +333,15 @@ class SidebarContainer extends Component {
           <summary><h3>Mine lande</h3></summary>
           <ul>
             {myCountries.map(country => (
-              <CountryListItem done={false} key={country}>{country}</CountryListItem>
+              <CountryListItem key={country}>{country}</CountryListItem>
             ))}
           </ul>
         </Details>
         <Details>
           <summary><h3>Mine begyndelseslande</h3></summary>
           <ul>
-            {myCountries.map(country => (
-              <CountryListItem done={false} key={country}>{country}</CountryListItem>
+            {myInitialCountries.map(country => (
+              <CountryListItem done={myCountries.find(c => c === country)} key={country}>{country}</CountryListItem>
             ))}
           </ul>
         </Details>
