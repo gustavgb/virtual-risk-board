@@ -5,6 +5,7 @@ import armyImg from 'images/army.png'
 import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
+import cardBackImg from 'images/card_back.png'
 import { streamGame, streamHand, getUsers } from 'api/game'
 import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
@@ -141,6 +142,15 @@ class GameContainer extends Component {
             {action.options.type === 0 && <img src={card0Img} alt='Card Action' />}
             {action.options.type === 1 && <img src={card1Img} alt='Card Action' />}
             {action.options.type === 2 && <img src={card2Img} alt='Card Action' />}
+          </ActionContainer>
+        )
+      case 'TAKE_CARD':
+        return (
+          <ActionContainer
+            x={mouseX}
+            y={mouseY}
+          >
+            <img src={cardBackImg} alt='Card Action' />
           </ActionContainer>
         )
       default:

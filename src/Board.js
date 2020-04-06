@@ -118,7 +118,7 @@ class BoardContainer extends Component {
         this.props.onChangeAction({})
         break
       default:
-        console.log('Click country')
+        console.log('Click country', countryName, troop)
     }
   }
 

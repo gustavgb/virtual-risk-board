@@ -28,8 +28,6 @@ const Zone = styled.div`
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  border: ${props => props.color ? '2px solid black' : 'none'};
-  box-shadow: ${props => props.color ? '0px 0px 10px 0px black' : 'none'};
   min-height: ${props => props.height || '20vh'};
   width: 100%;
   color: ${props => props => props.color ? props.theme.invertColor(props.color) : 'white'};
@@ -85,7 +83,6 @@ const Hand = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-gap: 1rem;
-  margin: 2vh 0;
 `
 
 const Card = styled.div`
@@ -175,24 +172,23 @@ class SidebarContainer extends Component {
   }
 
   onTakeCard () {
-    const {
-      user: {
-        uid
-      },
-      game: {
-        id
-      }
-    } = this.props
-
-    if (window.confirm('Vil du tage et kort?')) {
-      takeCard(id, uid)
-    }
+    this.props.onChangeAction({
+      type: 'TAKE_CARD'
+    })
   }
 
   onTakeArmy () {
     this.props.onChangeAction({
       type: 'PLACE_ARMY'
     })
+  }
+
+  onPlaceCard () {
+    const { action, game: { id }, user: { uid } } = this.props
+    if (action.type === 'TAKE_CARD') {
+      this.props.onChangeAction({})
+      takeCard(id, uid)
+    }
   }
 
   onMoveCard (type, index) {
@@ -266,7 +262,7 @@ class SidebarContainer extends Component {
           Vis dette kort til de andre spillere
         </BoardDropZone>
         <CancelDropZone
-          active={action.type === 'PLACE_ARMY' || action.type === 'MOVE_CARD'}
+          active={['PLACE_ARMY', 'MOVE_CARD', 'TAKE_CARD'].indexOf(action.type) > -1}
           onMouseUp={() => this.onDiscardAction()}
         />
         <Zone height='5rem' left>
@@ -292,20 +288,29 @@ class SidebarContainer extends Component {
             {colorList.map(c => <Option key={c} color={c} value={c} />)}
           </Select>
         </Zone>
-        <Zone bg={cardBackImg} color='#751b18' onClick={this.onTakeCard.bind(this)} />
-        <Hand>
-          {cards.map((card, index) => (
-            <Card
-              key={index}
-              bg={this.getCardBg(card)}
-              onMouseDown={() => this.onMoveCard(card, index)}
-              selected={
-                (action.type === 'MOVE_CARD' && action.options.index === index) ||
-                myDisplayedCards.find(card => card.cardIndex === index)
-              }
-            />
-          ))}
-        </Hand>
+        <Zone bg={cardBackImg} color='#751b18' onMouseDown={this.onTakeCard.bind(this)} />
+        <Zone
+          top={cards.length > 0}
+          left={cards.length > 0}
+          color={cards.length === 0 && 'rgba(100, 100, 100, 0.5)'}
+          popout={action.type === 'TAKE_CARD'}
+          onMouseUp={this.onPlaceCard.bind(this)}
+        >
+          {cards.length === 0 && 'Tag kort ved at trække dem herhen fra bunken'}
+          <Hand>
+            {cards.map((card, index) => (
+              <Card
+                key={index}
+                bg={this.getCardBg(card)}
+                onMouseDown={() => this.onMoveCard(card, index)}
+                selected={
+                  (action.type === 'MOVE_CARD' && action.options.index === index) ||
+                  myDisplayedCards.find(card => card.cardIndex === index)
+                }
+              />
+            ))}
+          </Hand>
+        </Zone>
         <Details>
           <summary><h3>Mine lande</h3></summary>
           <ul>
