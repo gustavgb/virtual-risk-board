@@ -96,7 +96,7 @@ const Card = styled.div`
   opacity: ${props => props.selected ? '0.5' : '1'};
 `
 
-const CountryListItem = styled.li`
+const ListItem = styled.li`
   color: ${props => props.done ? '#0f0' : 'white'};
 `
 
@@ -291,6 +291,7 @@ class SidebarContainer extends Component {
       hand: {
         cards
       },
+      users,
       action
     } = this.props
 
@@ -365,7 +366,7 @@ class SidebarContainer extends Component {
           <summary><h3>Mine lande ({myCountries.length})</h3></summary>
           <ul>
             {myCountries.map(country => (
-              <CountryListItem key={country}>{country}</CountryListItem>
+              <ListItem key={country}>{country}</ListItem>
             ))}
           </ul>
         </Details>
@@ -373,7 +374,15 @@ class SidebarContainer extends Component {
           <summary><h3>Mine begyndelseslande</h3></summary>
           <ul>
             {myInitialCountries.map(country => (
-              <CountryListItem done={myCountries.find(c => c === country)} key={country}>{country}</CountryListItem>
+              <ListItem done={myCountries.find(c => c === country)} key={country}>{country}</ListItem>
+            ))}
+          </ul>
+        </Details>
+        <Details>
+          <summary><h3>Medspillere</h3></summary>
+          <ul>
+            {users.map(user => (
+              <ListItem key={uid}>{user.name}</ListItem>
             ))}
           </ul>
         </Details>

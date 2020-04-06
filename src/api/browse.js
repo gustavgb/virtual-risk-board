@@ -11,7 +11,15 @@ export const streamMyGames = (id) => {
         const result = []
         games.forEach(game => result.push(game.snapshot.val()))
         return result
-      })
+      }),
+      map(games => games.sort((a, b) => {
+        if (a.title < b.title) {
+          return -1
+        } else if (a.title > b.title) {
+          return 1
+        }
+        return 0
+      }))
     )
 }
 

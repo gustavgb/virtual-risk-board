@@ -121,7 +121,7 @@ export const streamState = (user, gameId) => {
       game: mapGame({
         ...game.snapshot.val(),
         ...board.snapshot.val(),
-        events: events.snapshot.val(),
+        events: events.snapshot.val() || [],
         id: gameId,
         timestamp: Date.now()
       }),

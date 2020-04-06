@@ -84,6 +84,10 @@ class EventLog extends Component {
       events
     } = this.props
 
+    if (!events) {
+      return null
+    }
+
     const now = Date.now()
     const eventsFiltered = events.filter(event => event.expire > now)
 
