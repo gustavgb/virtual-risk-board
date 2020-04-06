@@ -4,7 +4,6 @@ import cardBackImg from 'images/card_back.png'
 import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
-import backIcon from 'images/back.png'
 import armyImg from 'images/army.png'
 import { setColors, takeCard, displayCard } from 'api/game'
 import { colors } from 'constants/colors'
@@ -45,7 +44,8 @@ const Zone = styled.div`
     display: flex;
     flex-direction: row;
     align-items: center;
-    color: black;
+    color: white;
+    text-decoration: none;
 
     & > img {
       height: 2.5rem;
@@ -230,7 +230,8 @@ class SidebarContainer extends Component {
     const {
       action,
       game: {
-        id
+        id,
+        displayedCards
       },
       user: {
         uid
@@ -239,7 +240,9 @@ class SidebarContainer extends Component {
 
     switch (action.type) {
       case 'MOVE_CARD':
-        displayCard(id, uid, action.options.type, action.options.index)
+        if (displayedCards.userId === uid || !displayedCards.userId) {
+          displayCard(id, uid, action.options.type, action.options.index)
+        }
         this.props.onChangeAction({})
         break
       default:
@@ -277,7 +280,9 @@ class SidebarContainer extends Component {
           active={action.type === 'MOVE_CARD'}
           onMouseUp={this.onClickBoard.bind(this)}
         >
-          Vis dette kort til de andre spillere
+          {(displayedCards.userId === uid || !displayedCards.userId)
+            ? 'Vis dette kort til de andre spillere'
+            : 'Du kan ikke vise dine kort mens andre gør det'}
         </BoardDropZone>
         <CancelDropZone
           active={['PLACE_ARMY', 'MOVE_CARD', 'TAKE_CARD'].indexOf(action.type) > -1}
@@ -285,7 +290,7 @@ class SidebarContainer extends Component {
         />
         <Zone height='5rem' left>
           <Link to='/'>
-            <img src={backIcon} alt='back' />
+            &larr;
             Tilbage til forsiden
           </Link>
         </Zone>

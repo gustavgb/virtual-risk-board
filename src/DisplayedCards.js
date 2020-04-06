@@ -159,8 +159,8 @@ class DisplayedCards extends Component {
         <DiscardZone active={action.type === 'MOVE_DISPLAYED_CARD'} onMouseUp={() => this.onReturnCard()} />
         <Root onMouseUp={this.onCancelCard.bind(this)}>
           <Header>
-            <h2>{uid === user.id ? 'Du viser dine kort' : `${user.name} viser sine kort`}</h2>
-            {uid === user.id && (
+            <h2>{uid === displayedCards.userId ? 'Du viser dine kort' : `${user.name} viser sine kort`}</h2>
+            {uid === displayedCards.userId && (
               <DiscardButton onClick={this.onDiscardCards.bind(this)}>Smid disse kort</DiscardButton>
             )}
           </Header>
