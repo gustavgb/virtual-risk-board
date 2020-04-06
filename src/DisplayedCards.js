@@ -61,11 +61,10 @@ const Card = styled.div`
   background-position: center;
   height: 10vw;
   width: 6vw;
-  opacity: ${props => props.selected ? '0.5' : '1'};
   animation: ${flyIn} 1s ease-out;
   margin-left: 16px;
 
-  display: ${props => props.hidden ? 'none' : 'block'};
+  opacity: ${props => props.selected ? '0' : '1'};
 
   &:first-child {
     margin-left: 0;
@@ -171,7 +170,7 @@ class DisplayedCards extends Component {
                 bg={this.getCardBg(card.cardType)}
                 key={card.cardIndex}
                 onMouseDown={() => this.onTakeCard(card, index)}
-                hidden={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
+                selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
               />
             ))}
           </CardContainer>

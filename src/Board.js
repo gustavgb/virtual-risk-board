@@ -32,11 +32,12 @@ const CountryMarker = styled.div.attrs(props => ({
   position: absolute;
   width: 2.5vw;
   height: 2.5vw;
-  color: white;
+  color: ${props => props.theme.invertColor(props.color)};
   display: flex;
   justify-content: center;
   align-items: center;
   user-select: none;
+  z-index: ${props => props.popout ? 200 : 0};
 
   &:hover {
     width: 3vw;
@@ -126,6 +127,7 @@ class BoardContainer extends Component {
       width,
       height
     } = this.state
+    const { action } = this.props
     const groups = country.troopsList.length - 1
 
     return (
@@ -137,6 +139,7 @@ class BoardContainer extends Component {
             x={(country.x - (groups / 2) * 0.04 + 0.04 * index) * width}
             y={country.y * height}
             onClick={() => this.onClickCountry(country.name, troop.color)}
+            popout={action.type === 'PLACE_ARMY'}
           >
             {troop.amount}
           </CountryMarker>
@@ -144,10 +147,11 @@ class BoardContainer extends Component {
         {groups === -1 && (
           <CountryMarker
             key={country.name + 0}
-            color='grey'
+            color='#808080'
             x={country.x * width}
             y={country.y * height}
             onClick={() => this.onClickCountry(country.name, null)}
+            popout={action.type === 'PLACE_ARMY'}
           />
         )}
       </React.Fragment>

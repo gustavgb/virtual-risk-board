@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
-import trashImg from 'images/trash.png'
 import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
@@ -36,9 +35,11 @@ const Zone = styled.div`
   color: ${props => props => props.color ? props.theme.invertColor(props.color) : 'white'};
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: ${props => props.top ? 'flex-start' : 'center'};;
   align-items: ${props => props.left ? 'flex-start' : 'center'};
   margin: 2vh 0;
+  z-index: ${props => props.popout ? 200 : 0};
+  position: relative;
 
   & > a {
     margin-bottom: 1rem;
@@ -77,11 +78,6 @@ const Option = styled.option`
     background-color: ${props => props.color};
     color: ${props => props.theme.invertColor(props.color)};
   }
-`
-
-const Button = styled.button`
-  padding: 1rem 0;
-  width: 100%;
 `
 
 const Hand = styled.div`
@@ -132,7 +128,7 @@ const BoardDropZone = styled.div`
 const CancelDropZone = styled.div`
   position: absolute;
   z-index: 100;
-  width: 20vw;
+  right: 0;
   bottom: 0;
   top: 0;
   left: 0;
@@ -199,20 +195,6 @@ class SidebarContainer extends Component {
     })
   }
 
-  onClickTrash () {
-    const {
-      action
-    } = this.props
-
-    switch (action.type) {
-      case 'PLACE_ARMY':
-        this.props.onChangeAction({})
-        break
-      default:
-        console.log('Click trash')
-    }
-  }
-
   onMoveCard (type, index) {
     const { action, game: { displayedCards }, user: { uid } } = this.props
     if (
@@ -229,7 +211,7 @@ class SidebarContainer extends Component {
     }
   }
 
-  onReturnCard () {
+  onDiscardAction () {
     this.props.onChangeAction({})
   }
 
@@ -284,8 +266,8 @@ class SidebarContainer extends Component {
           Vis dette kort til de andre spillere
         </BoardDropZone>
         <CancelDropZone
-          active={action.type === 'MOVE_CARD'}
-          onMouseUp={() => this.onReturnCard()}
+          active={action.type === 'PLACE_ARMY' || action.type === 'MOVE_CARD'}
+          onMouseUp={() => this.onDiscardAction()}
         />
         <Zone height='5rem' left>
           <Link to='/'>
@@ -293,19 +275,22 @@ class SidebarContainer extends Component {
             Tilbage til forsiden
           </Link>
         </Zone>
-        <Zone color='#ddd' bg={trashImg} height='10vh' onClick={this.onClickTrash.bind(this)} />
-        <Zone color={color} bg={armyImg}>
+        <Zone
+          color={color}
+          bg={armyImg}
+          top
+          onClick={this.onTakeArmy.bind(this)}
+          popout={action.type === 'PLACE_ARMY'}
+        >
           <Select
             value={color}
-            placeholder='Vælg brikker'
             color={color}
             onChange={(e) => this.onChangeColor(e.target.value)}
+            onClick={e => e.stopPropagation()}
           >
             <Option color='#808080' value=''>Vælg farve</Option>
             {colorList.map(c => <Option key={c} color={c} value={c} />)}
           </Select>
-          <Button onClick={this.onTakeArmy.bind(this)}>Tag én armér</Button>
-          <Button onClick={this.onTakeArmy.bind(this)}>Tag flere armérer</Button>
         </Zone>
         <Zone bg={cardBackImg} color='#751b18' onClick={this.onTakeCard.bind(this)} />
         <Hand>
