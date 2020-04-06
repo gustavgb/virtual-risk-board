@@ -2,6 +2,9 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import bgImg from 'images/bg.jpg'
 import armyImg from 'images/army.png'
+import card0Img from 'images/card_1.png'
+import card1Img from 'images/card_2.png'
+import card2Img from 'images/card_3.png'
 import { streamGame, streamHand, getUsers } from 'api/game'
 import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
@@ -53,7 +56,7 @@ class GameContainer extends Component {
       users: null,
       mouseX: 0,
       mouseY: 0,
-      action: null
+      action: {}
     }
 
     this.boardEl = React.createRef()
@@ -117,7 +120,7 @@ class GameContainer extends Component {
       action
     } = this.state
 
-    switch (action) {
+    switch (action.type) {
       case 'PLACE_ARMY':
         return (
           <ActionContainer
@@ -125,6 +128,17 @@ class GameContainer extends Component {
             y={mouseY}
           >
             <img src={armyImg} alt='Army' />
+          </ActionContainer>
+        )
+      case 'MOVE_CARD':
+        return (
+          <ActionContainer
+            x={mouseX}
+            y={mouseY}
+          >
+            {action.options.type === 0 && <img src={card0Img} alt='Card Action' />}
+            {action.options.type === 1 && <img src={card1Img} alt='Card Action' />}
+            {action.options.type === 2 && <img src={card2Img} alt='Card Action' />}
           </ActionContainer>
         )
       default:

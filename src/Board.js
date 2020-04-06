@@ -67,6 +67,16 @@ class BoardContainer extends Component {
     window.removeEventListener('resize', this._onResize)
   }
 
+  shouldComponentUpdate (nextProps, nextState) {
+    return (
+      nextProps.action.type !== this.props.action.type ||
+      nextProps.user.uid !== this.props.user.uid ||
+      nextProps.game.timestamp !== this.props.game.timestamp ||
+      nextState.width !== this.state.width ||
+      nextState.height !== this.state.height
+    )
+  }
+
   onResize () {
     const innerWidth = window.innerWidth * 0.8
     const innerHeight = window.innerHeight
@@ -100,10 +110,10 @@ class BoardContainer extends Component {
       }
     } = this.props
 
-    switch (action) {
+    switch (action.type) {
       case 'PLACE_ARMY':
         placeArmy(id, uid, countryName)
-        this.props.onChangeAction(null)
+        this.props.onChangeAction({})
         break
       default:
         console.log('Click country')
@@ -145,14 +155,16 @@ class BoardContainer extends Component {
 
   render () {
     const {
-      game
+      game: {
+        countries
+      }
     } = this.props
     const {
       width,
       height
     } = this.state
 
-    const joinedCountries = game.countries.map(country => ({ ...countriesDir[country.name], ...country }))
+    const joinedCountries = countries.map(country => ({ ...countriesDir[country.name], ...country }))
 
     return (
       <Board width={width} height={height}>

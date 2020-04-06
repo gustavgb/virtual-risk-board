@@ -11,6 +11,7 @@ const mapGame = (game) => ({
   title: null,
   id: null,
   initialCountries: [],
+  displayedCards: {},
   ...game,
   countries: (game.countries || []).map(country => ({
     troops: {},
@@ -32,7 +33,7 @@ const mapHand = (hand) => ({
 export const streamGame = (user, gameId) => {
   const gameRef = database.ref(`games/${gameId}`)
 
-  return object(gameRef).pipe(map(game => mapGame({ ...game.snapshot.val(), id: gameId })))
+  return object(gameRef).pipe(map(game => mapGame({ ...game.snapshot.val(), id: gameId, timestamp: Date.now() })))
 }
 
 export const streamHand = (user, gameId) => {
@@ -117,6 +118,27 @@ export const placeArmy = (gameId, userId, country) => {
         })
       }
     }
+    return game
+  })
+}
+
+export const displayCard = (gameId, userId, cardType, cardIndex) => {
+  return database.ref(`games/${gameId}`).transaction(game => {
+    if (game) {
+      if (!game.displayedCards) {
+        game.displayedCards = {}
+      }
+
+      if (!game.displayedCards[userId]) {
+        game.displayedCards[userId] = []
+      }
+
+      game.displayedCards[userId].push({
+        cardType,
+        cardIndex
+      })
+    }
+
     return game
   })
 }

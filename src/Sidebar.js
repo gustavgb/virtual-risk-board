@@ -7,7 +7,7 @@ import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
 import backIcon from 'images/back.png'
 import armyImg from 'images/army.png'
-import { setColors, takeCard } from 'api/game'
+import { setColors, takeCard, displayCard } from 'api/game'
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
 
@@ -95,13 +95,46 @@ const Card = styled.div`
   background-size: contain;
   background-position: center;
   height: 10vw;
+  opacity: ${props => props.selected ? '0.5' : '1'};
 `
 
 const CountryListItem = styled.li`
   color: ${props => props.done ? '#0f0' : 'white'};
 `
 
+const BoardDropZone = styled.div`
+  position: absolute;
+  z-index: 100;
+  background-color: #555;
+  opacity: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  left: 20vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 25px;
+  pointer-events: ${props => props.active ? 'all' : 'none'};
+  transition: opacity 0.2s ease-out;
+  user-select: none;
+
+  &:hover {
+    opacity: 0.7;
+  }
+`
+
 class SidebarContainer extends Component {
+  shouldComponentUpdate (nextProps) {
+    return (
+      nextProps.action.type !== this.props.action.type ||
+      nextProps.user.uid !== this.props.user.uid ||
+      nextProps.game.timestamp !== this.props.game.timestamp ||
+      (nextProps.hand.cards && nextProps.hand.cards.length) !== (this.props.hand.cards && this.props.hand.cards.length)
+    )
+  }
+
   getCardBg (card) {
     switch (card) {
       case 0:
@@ -120,10 +153,12 @@ class SidebarContainer extends Component {
       user: {
         uid
       },
-      game
+      game: {
+        id
+      }
     } = this.props
 
-    setColors(game.id, { [uid]: color })
+    setColors(id, { [uid]: color })
   }
 
   onTakeCard () {
@@ -131,16 +166,20 @@ class SidebarContainer extends Component {
       user: {
         uid
       },
-      game
+      game: {
+        id
+      }
     } = this.props
 
     if (window.confirm('Vil du tage et kort?')) {
-      takeCard(game.id, uid)
+      takeCard(id, uid)
     }
   }
 
   onTakeArmy () {
-    this.props.onChangeAction('PLACE_ARMY')
+    this.props.onChangeAction({
+      type: 'PLACE_ARMY'
+    })
   }
 
   onClickTrash () {
@@ -148,12 +187,48 @@ class SidebarContainer extends Component {
       action
     } = this.props
 
-    switch (action) {
+    switch (action.type) {
       case 'PLACE_ARMY':
-        this.props.onChangeAction(null)
+        this.props.onChangeAction({})
         break
       default:
         console.log('Click trash')
+    }
+  }
+
+  onClickCard (type, index) {
+    const { action } = this.props
+    if (!(action.type === 'MOVE_CARD' && action.options.index === index)) {
+      this.props.onChangeAction({
+        type: 'MOVE_CARD',
+        options: {
+          type,
+          index
+        }
+      })
+    } else {
+      this.props.onChangeAction({})
+    }
+  }
+
+  onClickBoard () {
+    const {
+      action,
+      game: {
+        id
+      },
+      user: {
+        uid
+      }
+    } = this.props
+
+    switch (action.type) {
+      case 'MOVE_CARD':
+        displayCard(id, uid, action.options.type, action.options.index)
+        this.props.onChangeAction({})
+        break
+      default:
+        console.log('Click board')
     }
   }
 
@@ -162,16 +237,25 @@ class SidebarContainer extends Component {
       user: {
         uid
       },
-      game,
-      hand
+      game: {
+        initialCountries,
+        colors: gameColors
+      },
+      hand: {
+        cards
+      },
+      action
     } = this.props
 
-    const color = game.colors[uid] || '#808080'
-    const colorList = colors.filter(c => !Object.keys(game.colors).find(p => game.colors[p] === c))
-    const myCountries = game.initialCountries[uid]
+    const color = gameColors[uid] || '#808080'
+    const colorList = colors.filter(c => !Object.keys(gameColors).find(p => gameColors[p] === c))
+    const myCountries = initialCountries[uid]
 
     return (
       <Sidebar>
+        <BoardDropZone active={action.type === 'MOVE_CARD'} onClick={this.onClickBoard.bind(this)}>
+          Vis dette kort til de andre spillere
+        </BoardDropZone>
         <Zone height='5rem' left>
           <Link to='/'>
             <img src={backIcon} alt='back' />
@@ -194,7 +278,14 @@ class SidebarContainer extends Component {
         </Zone>
         <Zone bg={cardBackImg} color='#751b18' onClick={this.onTakeCard.bind(this)} />
         <Hand>
-          {hand.cards.map((card, index) => <Card key={index} bg={this.getCardBg(card)} />)}
+          {cards.map((card, index) => (
+            <Card
+              key={index}
+              bg={this.getCardBg(card)}
+              onClick={() => this.onClickCard(card, index)}
+              selected={action.type === 'MOVE_CARD' && action.options.index === index}
+            />
+          ))}
         </Hand>
         <Details>
           <summary><h3>Mine lande</h3></summary>
