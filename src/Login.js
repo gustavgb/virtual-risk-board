@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 
 import styled from 'styled-components'
+import logo from 'images/card_back.png'
 import { register, login } from 'api/login'
 
 const Root = styled.div`
@@ -43,6 +44,10 @@ const Error = styled.p`
   color: red;
 `
 
+const Logo = styled.img`
+  width: 100%;
+`
+
 const Login = () => {
   const [mode, setMode] = useState('LOGIN')
   const [email, setEmail] = useState('')
@@ -83,6 +88,7 @@ const Login = () => {
   return (
     <Root>
       <form onSubmit={submit}>
+        <Logo src={logo} />
         <Header>
           {mode === 'LOGIN' && 'Log ind'}
           {mode === 'REGISTER' && 'Opret bruger'}

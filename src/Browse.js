@@ -3,6 +3,7 @@ import { streamMyGames, createGame, deleteGame, changeTitle, checkCode } from 'a
 import styled from 'styled-components'
 import { logout } from 'api/login'
 import { withRouter } from 'react-router-dom'
+import logo from 'images/card_back.png'
 
 const Root = styled.div`
   width: 50rem;
@@ -15,12 +16,11 @@ const Top = styled.div`
   background-color: #aaa;
   padding: 2rem;
   margin-bottom: 2rem;
-
-  &::after {
-    clear: both;
-    content: "";
-    display: table;
-  }
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-areas: ". logo info";
+  align-items: start;
+  justify-items: center;
 `
 
 const Header = styled.h1``
@@ -53,6 +53,21 @@ const CodeBox = styled.input.attrs({
   display: block;
   width: 100%;
   margin: 1rem 0;
+`
+
+const Logo = styled.img.attrs({
+  src: logo
+})`
+  height: 100px;
+  grid-area: logo;
+`
+
+const UserInfo = styled.div`
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 100%;
 `
 
 class Browse extends Component {
@@ -117,8 +132,11 @@ class Browse extends Component {
     return (
       <>
         <Top>
-          <span>Logget ind som {user.name} ({user.email})</span>
-          <Button onClick={() => logout()}>Log ud</Button>
+          <Logo />
+          <UserInfo>
+            <div>Logget ind som {user.name} ({user.email})</div>
+            <Button onClick={() => logout()}>Log ud</Button>
+          </UserInfo>
         </Top>
         <Root>
           {error && <Error>{error}</Error>}
