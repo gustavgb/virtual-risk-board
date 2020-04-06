@@ -17,10 +17,11 @@ const mapGame = (game) => ({
     ...(game.displayedCards || {})
   },
   countries: (game.countries || []).map(country => ({
-    troops: {},
+    armies: {},
     ...country,
-    troopsList: Object.keys(country.troops || {}).map(key => ({
-      ...country.troops[key]
+    armiesList: Object.keys(country.armies || {}).map(key => ({
+      ...country.armies[key],
+      id: key
     }))
   }))
 })
@@ -91,29 +92,70 @@ export const takeCard = (gameId, userId) => {
   })
 }
 
-export const placeArmy = (gameId, userId, country) => {
+export const placeArmy = (gameId, userId, country, color) => {
   return database.ref(`games/${gameId}`).transaction(game => {
     if (game) {
-      if (!game.colors) {
-        game.colors = {}
-      }
+      if (!color) {
+        if (!game.colors) {
+          game.colors = {}
+        }
 
-      const color = game.colors[userId]
+        color = game.colors[userId]
+      }
 
       if (color) {
         game.countries = game.countries.map(c => {
           if (country === c.name) {
-            const troops = c.troops || {}
+            const armies = c.armies || {}
             const key = fromString(color)
-            const prevAmount = troops[key] ? troops[key].amount : 0
+            const prevAmount = armies[key] ? armies[key].amount : 0
 
             return {
               ...c,
-              troops: {
-                ...troops,
+              armies: {
+                ...armies,
                 [key]: {
                   color,
                   amount: prevAmount + 1
+                }
+              }
+            }
+          }
+
+          return c
+        })
+      }
+    }
+    return game
+  })
+}
+
+export const removeArmy = (gameId, userId, country, armyId, amount = 1) => {
+  return database.ref(`games/${gameId}`).transaction(game => {
+    if (game) {
+      if (armyId) {
+        game.countries = game.countries.map(c => {
+          if (country === c.name) {
+            const armies = c.armies || {}
+            const prevAmount = armies[armyId] ? armies[armyId].amount : 0
+
+            if (prevAmount - amount > 0) {
+              return {
+                ...c,
+                armies: {
+                  ...armies,
+                  [armyId]: {
+                    ...armies[armyId],
+                    amount: prevAmount - amount
+                  }
+                }
+              }
+            } else {
+              return {
+                ...c,
+                armies: {
+                  ...armies,
+                  [armyId]: null
                 }
               }
             }

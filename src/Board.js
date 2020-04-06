@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import boardImg from 'images/board.svg'
 import { countriesDir } from 'constants/countries'
-import { placeArmy } from 'api/game'
+import { placeArmy, removeArmy } from 'api/game'
 
 const Board = styled.div.attrs(props => ({
   style: {
@@ -101,7 +101,7 @@ class BoardContainer extends Component {
     })
   }
 
-  onClickCountry (countryName, troop) {
+  onClickCountry (countryName, army) {
     const {
       user: {
         uid
@@ -117,8 +117,24 @@ class BoardContainer extends Component {
         placeArmy(id, uid, countryName)
         this.props.onChangeAction({})
         break
-      default:
-        console.log('Click country', countryName, troop)
+      case 'MOVE_ARMY':
+        placeArmy(id, uid, countryName, action.options.color)
+        this.props.onChangeAction({})
+        break
+      default: {
+        if (!action.type && army && army.amount > 0) {
+          removeArmy(id, uid, countryName, army.id, 1)
+          this.props.onChangeAction({
+            type: 'MOVE_ARMY',
+            options: {
+              countryName,
+              armyId: army.id,
+              amount: 1,
+              color: army.color
+            }
+          })
+        }
+      }
     }
   }
 
@@ -128,20 +144,21 @@ class BoardContainer extends Component {
       height
     } = this.state
     const { action } = this.props
-    const groups = country.troopsList.length - 1
+    const groups = country.armiesList.length - 1
+    const pop = action.type === 'PLACE_ARMY' || action.type === 'MOVE_ARMY'
 
     return (
       <React.Fragment key={country.name}>
-        {country.troopsList.map((troop, index) => (
+        {country.armiesList.map((army, index) => (
           <CountryMarker
             key={country.name + index}
-            color={troop.color}
+            color={army.color}
             x={(country.x - (groups / 2) * 0.04 + 0.04 * index) * width}
             y={country.y * height}
-            onClick={() => this.onClickCountry(country.name, troop.color)}
-            popout={action.type === 'PLACE_ARMY'}
+            onClick={() => this.onClickCountry(country.name, army)}
+            popout={pop}
           >
-            {troop.amount}
+            {army.amount}
           </CountryMarker>
         ))}
         {groups === -1 && (
@@ -151,7 +168,7 @@ class BoardContainer extends Component {
             x={country.x * width}
             y={country.y * height}
             onClick={() => this.onClickCountry(country.name, null)}
-            popout={action.type === 'PLACE_ARMY'}
+            popout={pop}
           />
         )}
       </React.Fragment>
@@ -172,9 +189,11 @@ class BoardContainer extends Component {
     const joinedCountries = countries.map(country => ({ ...countriesDir[country.name], ...country }))
 
     return (
-      <Board width={width} height={height}>
-        {joinedCountries.map(country => this.renderCountry(country))}
-      </Board>
+      <>
+        <Board width={width} height={height}>
+          {joinedCountries.map(country => this.renderCountry(country))}
+        </Board>
+      </>
     )
   }
 }

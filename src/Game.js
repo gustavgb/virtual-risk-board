@@ -48,6 +48,32 @@ const ActionContainer = styled.div.attrs(props => ({
   }
 `
 
+const ArmyMarker = styled.div`
+  width: 2.5vw;
+  height: 2.5vw;
+  border-radius: 50%;
+  border: 1px solid black;
+  color: ${props => props.theme.invertColor(props.color)};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  background-color: ${props => props.color};
+`
+
+const DropZoneBlocker = styled.div`
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  color: white;
+  font-size: 25px;
+  user-select: none;
+  pointer-events: ${props => props.active ? 'all' : 'none'};
+`
+
 class GameContainer extends Component {
   constructor (props) {
     super(props)
@@ -153,6 +179,17 @@ class GameContainer extends Component {
             <img src={cardBackImg} alt='Card Action' />
           </ActionContainer>
         )
+      case 'MOVE_ARMY':
+        return (
+          <ActionContainer
+            x={mouseX}
+            y={mouseY}
+          >
+            <ArmyMarker color={action.options.color}>
+              {action.options.amount}
+            </ArmyMarker>
+          </ActionContainer>
+        )
       default:
         return null
     }
@@ -175,6 +212,7 @@ class GameContainer extends Component {
 
     return (
       <Root>
+        <DropZoneBlocker active={action.type === 'MOVE_ARMY'} />
         {game.displayedCards.list.length > 0 && (
           <DisplayedCards
             displayedCards={game.displayedCards}

@@ -48,7 +48,7 @@ export const createGame = (user) => {
     creator: user.uid,
     countries: countries.map(country => ({
       name: country.name,
-      troops: []
+      armies: []
     })),
     events: [],
     colors: {}
@@ -163,7 +163,7 @@ export const changeTitle = (gameId) => {
 //       transaction.set(boardRef, {
 //         countries: countries.map(country => ({
 //           name: country.name,
-//           troops: {
+//           armies: {
 //             [countryShares[country.name]]: 1
 //           }
 //         })),

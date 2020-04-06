@@ -292,7 +292,7 @@ class SidebarContainer extends Component {
         <Zone
           top={cards.length > 0}
           left={cards.length > 0}
-          color={cards.length === 0 && 'rgba(100, 100, 100, 0.5)'}
+          color={cards.length === 0 ? 'rgba(100, 100, 100, 0.5)' : undefined}
           popout={action.type === 'TAKE_CARD'}
           onMouseUp={this.onPlaceCard.bind(this)}
         >
