@@ -3,6 +3,25 @@ import { object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 import { fromString } from 'makeId'
 import { combineLatest } from 'rxjs'
+import { countries } from 'constants/countries'
+
+function shuffle (array) {
+  var currentIndex = array.length; var temporaryValue; var randomIndex
+
+  // While there remain elements to shuffle...
+  while (currentIndex !== 0) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex)
+    currentIndex -= 1
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex]
+    array[currentIndex] = array[randomIndex]
+    array[randomIndex] = temporaryValue
+  }
+
+  return array
+}
 
 const mapGame = (game) => ({
   colors: {},
@@ -34,6 +53,57 @@ const mapHand = (hand) => ({
   id: null,
   ...hand
 })
+
+export const joinGame = (user, gameId) => {
+  return Promise.all([
+    database.ref(`hands/${gameId}${user.uid}`).transaction(hand => {
+      if (!hand) {
+        return {
+          cards: [],
+          player: user.uid,
+          game: gameId
+        }
+      }
+      return hand
+    }),
+    database.ref(`games/${gameId}`).transaction(game => {
+      if (game) {
+        let changedMembers = false
+
+        if (!game.members) {
+          game.members = []
+          changedMembers = true
+        }
+
+        if (!game.members.find(member => member === user.uid)) {
+          game.members.push(user.uid)
+          changedMembers = true
+        }
+
+        if (changedMembers) {
+          const countriesShuffled = shuffle(countries.map(country => country.name))
+          let turn = 0
+          game.initialCountries = countriesShuffled.reduce((acc, country) => {
+            turn = (turn + 1) % game.members.length
+            return {
+              ...acc,
+              [game.members[turn]]: [
+                ...(acc[game.members[turn]] || []),
+                country
+              ]
+            }
+          }, {})
+        }
+
+        if (!game.initialCountries) {
+          game.initialCountries = []
+        }
+      }
+
+      return game
+    })
+  ])
+}
 
 export const streamState = (user, gameId) => {
   const gameRef = database.ref(`games/${gameId}`)

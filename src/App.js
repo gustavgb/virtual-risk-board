@@ -6,7 +6,7 @@ import { auth } from 'api'
 import Login from 'Login'
 import Browse from 'Browse'
 import GameContainer from 'Game'
-import { withRouter, Route, Switch } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
 import { connect } from 'react-redux'
 
 const Root = styled.div`
@@ -33,12 +33,6 @@ class App extends Component {
     })
   }
 
-  onJoinGame (gameId) {
-    const { history } = this.props
-
-    history.push(`/${gameId}`)
-  }
-
   render () {
     const {
       loaded,
@@ -62,7 +56,7 @@ class App extends Component {
             <Route
               path='/'
               render={() => (
-                <Browse user={user} onJoinGame={this.onJoinGame.bind(this)} />
+                <Browse user={user} />
               )}
             />
           </Switch>
@@ -76,4 +70,4 @@ export default connect(
   state => ({
     user: state.user
   })
-)(withRouter(App))
+)(App)

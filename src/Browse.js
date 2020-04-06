@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
-import { streamMyGames, createGame, deleteGame, changeTitle } from 'api/browse'
+import { streamMyGames, createGame, deleteGame, changeTitle, checkCode } from 'api/browse'
 import styled from 'styled-components'
 import { logout } from 'api/login'
+import { withRouter } from 'react-router-dom'
 
 const Root = styled.div`
   width: 50rem;
@@ -60,7 +61,8 @@ class Browse extends Component {
 
     this.state = {
       games: [],
-      error: null
+      error: null,
+      code: ''
     }
 
     this.streamMyGames = null
@@ -77,13 +79,38 @@ class Browse extends Component {
     this.streamMyGames.unsubscribe()
   }
 
+  onChangeCode ({ target: { value } }) {
+    this.setState({
+      code: value,
+      error: null
+    })
+  }
+
+  onJoinGame (gameId, event) {
+    const { history } = this.props
+
+    if (event) {
+      event.preventDefault()
+    }
+
+    checkCode(gameId)
+      .then(() => {
+        history.push(`/${gameId}`)
+      })
+      .catch(err => {
+        this.setState({
+          error: err.message
+        })
+      })
+  }
+
   render () {
     const {
       games,
-      error
+      error,
+      code
     } = this.state
     const {
-      onJoinGame,
       user
     } = this.props
 
@@ -93,8 +120,14 @@ class Browse extends Component {
           <span>Logget ind som {user.name} ({user.email})</span>
           <Button onClick={() => logout()}>Log ud</Button>
         </Top>
-        {error && <Error>{error}</Error>}
         <Root>
+          {error && <Error>{error}</Error>}
+          <Header>Join et spil</Header>
+          <form onSubmit={e => this.onJoinGame(code, e)}>
+            Indtast den kode som du har fået delt af vennerne
+            <CodeBox value={code} onChange={this.onChangeCode.bind(this)} />
+            <Button type='submit'>Join</Button>
+          </form>
           <Header>Dine spil</Header>
           <button onClick={() => createGame(user)}>Nyt spil</button>
           {games.map(game => (
@@ -103,7 +136,7 @@ class Browse extends Component {
               Del denne kode med vennerne for at lade dem joine!
               <CodeBox value={game.id} onChange={() => null} />
               <button onClick={() => deleteGame(game)}>Slet spil</button>
-              <Button onClick={() => onJoinGame(game.id)}>Join</Button>
+              <Button onClick={() => this.onJoinGame(game.id)}>Join</Button>
             </Game>
           ))}
         </Root>
@@ -112,4 +145,4 @@ class Browse extends Component {
   }
 }
 
-export default Browse
+export default withRouter(Browse)

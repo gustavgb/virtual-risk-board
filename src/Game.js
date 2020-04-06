@@ -5,11 +5,10 @@ import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
 import cardBackImg from 'images/card_back.png'
-import { streamState, getUsers } from 'api/game'
+import { streamState, getUsers, joinGame } from 'api/game'
 import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
 import DisplayedCards from 'DisplayedCards'
-import { joinGame } from 'api/browse'
 import EventLog from 'EventLog'
 
 const Root = styled.div`
