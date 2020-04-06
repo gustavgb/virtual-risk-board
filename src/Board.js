@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import boardImg from 'images/board.svg'
+import trashImg from 'images/trash.png'
 import { countriesDir } from 'constants/countries'
 import { placeArmy, removeArmy } from 'api/game'
 
@@ -43,6 +44,22 @@ const CountryMarker = styled.div.attrs(props => ({
     width: 3vw;
     height: 3vw;
   }
+`
+
+const Trash = styled.div`
+  background-image: url(${trashImg});
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 10vw;
+  height: 10vw;
+  position: absolute;
+  bottom: ${props => props.active ? '20px' : '-10vw'};
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  transition: bottom 1s ease-out;
+  background-color: rgba(100, 100, 100, 0.7);
 `
 
 class BoardContainer extends Component {
@@ -138,6 +155,13 @@ class BoardContainer extends Component {
     }
   }
 
+  onDiscardAction () {
+    const { action } = this.props
+    if (action.type) {
+      this.props.onChangeAction({})
+    }
+  }
+
   renderCountry (country) {
     const {
       width,
@@ -179,7 +203,8 @@ class BoardContainer extends Component {
     const {
       game: {
         countries
-      }
+      },
+      action
     } = this.props
     const {
       width,
@@ -190,6 +215,7 @@ class BoardContainer extends Component {
 
     return (
       <>
+        <Trash active={action.type === 'MOVE_ARMY'} onClick={this.onDiscardAction.bind(this)} />
         <Board width={width} height={height}>
           {joinedCountries.map(country => this.renderCountry(country))}
         </Board>

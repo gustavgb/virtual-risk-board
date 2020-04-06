@@ -30,6 +30,7 @@ const Content = styled.div`
   position: relative;
   width: calc(100% - 20vw);
   height: 100%;
+  overflow: hidden;
 `
 
 const ActionContainer = styled.div.attrs(props => ({
