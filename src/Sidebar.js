@@ -129,6 +129,19 @@ const BoardDropZone = styled.div`
   }
 `
 
+const CancelDropZone = styled.div`
+  position: absolute;
+  z-index: 100;
+  width: 20vw;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  color: white;
+  font-size: 25px;
+  user-select: none;
+  pointer-events: ${props => props.active ? 'all' : 'none'};
+`
+
 class SidebarContainer extends Component {
   shouldComponentUpdate (nextProps) {
     return (
@@ -200,7 +213,7 @@ class SidebarContainer extends Component {
     }
   }
 
-  onClickCard (type, index) {
+  onMoveCard (type, index) {
     const { action, game: { displayedCards }, user: { uid } } = this.props
     if (
       !(action.type === 'MOVE_CARD' && action.options.index === index) &&
@@ -213,9 +226,11 @@ class SidebarContainer extends Component {
           index
         }
       })
-    } else {
-      this.props.onChangeAction({})
     }
+  }
+
+  onReturnCard () {
+    this.props.onChangeAction({})
   }
 
   onClickBoard () {
@@ -268,6 +283,10 @@ class SidebarContainer extends Component {
         >
           Vis dette kort til de andre spillere
         </BoardDropZone>
+        <CancelDropZone
+          active={action.type === 'MOVE_CARD'}
+          onMouseUp={() => this.onReturnCard()}
+        />
         <Zone height='5rem' left>
           <Link to='/'>
             <img src={backIcon} alt='back' />
@@ -294,7 +313,7 @@ class SidebarContainer extends Component {
             <Card
               key={index}
               bg={this.getCardBg(card)}
-              onMouseDown={() => this.onClickCard(card, index)}
+              onMouseDown={() => this.onMoveCard(card, index)}
               selected={
                 (action.type === 'MOVE_CARD' && action.options.index === index) ||
                 myDisplayedCards.find(card => card.cardIndex === index)

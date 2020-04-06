@@ -169,7 +169,7 @@ class DisplayedCards extends Component {
             {displayedCards.list.map((card, index) => (
               <Card
                 bg={this.getCardBg(card.cardType)}
-                key={index}
+                key={card.cardIndex}
                 onMouseDown={() => this.onTakeCard(card, index)}
                 hidden={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
               />
