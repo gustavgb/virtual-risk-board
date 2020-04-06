@@ -11,8 +11,11 @@ const mapGame = (game) => ({
   title: null,
   id: null,
   initialCountries: [],
-  displayedCards: {},
   ...game,
+  displayedCards: {
+    list: [],
+    ...(game.displayedCards || {})
+  },
   countries: (game.countries || []).map(country => ({
     troops: {},
     ...country,
@@ -50,8 +53,10 @@ export const getUsers = (gameId) => {
 
     const game = doc.val()
     return Promise.all(
-      (game.members || []).map(member => database.ref(`users/${member}`).once('value'))
-    ).then(results => results.map(snap => snap.val()))
+      (game.members || []).map(
+        member => database.ref(`users/${member}`).once('value').then(user => ({ ...user.val(), id: member }))
+      )
+    )
   })
 }
 
@@ -126,19 +131,80 @@ export const displayCard = (gameId, userId, cardType, cardIndex) => {
   return database.ref(`games/${gameId}`).transaction(game => {
     if (game) {
       if (!game.displayedCards) {
-        game.displayedCards = {}
+        game.displayedCards = {
+          userId
+        }
       }
 
-      if (!game.displayedCards[userId]) {
-        game.displayedCards[userId] = []
+      if (game.displayedCards.userId === userId) {
+        if (!game.displayedCards.list) {
+          game.displayedCards.list = []
+        }
+        game.displayedCards.list.push({
+          cardType,
+          cardIndex
+        })
       }
-
-      game.displayedCards[userId].push({
-        cardType,
-        cardIndex
-      })
     }
 
     return game
   })
+}
+
+export const removeDisplayedCard = (gameId, userId, cardIndex) => {
+  return database.ref(`games/${gameId}`).transaction(game => {
+    if (game) {
+      if (!game.displayedCards) {
+        game.displayedCards = {
+          userId
+        }
+      }
+
+      if (game.displayedCards.userId === userId) {
+        if (!game.displayedCards.list) {
+          game.displayedCards.list = []
+        }
+        game.displayedCards.list = game.displayedCards.list.filter(
+          card => card.cardIndex !== cardIndex
+        )
+      }
+    }
+
+    return game
+  })
+}
+
+export const discardDisplayedCards = (gameId, userId, displayedCards) => {
+  return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
+    if (hand) {
+      if (!hand.cards) {
+        hand.cards = []
+      }
+
+      hand.cards = hand.cards.filter((card, index) => !displayedCards.find(c => c.cardIndex === index))
+    }
+
+    return hand
+  })
+    .then(() => database.ref(`games/${gameId}`).transaction(game => {
+      if (game) {
+        if (!game.displayedCards) {
+          game.displayedCards = {
+            list: []
+          }
+        }
+
+        if (!game.displayedCards.list) {
+          game.displayedCards.list = []
+        }
+
+        game.displayedCards.list = game.displayedCards.list.filter(card => !displayedCards.find(c => c.cardIndex === card.cardIndex))
+
+        if (game.displayedCards.list.length === 0) {
+          game.displayedCards = null
+        }
+      }
+
+      return game
+    }))
 }

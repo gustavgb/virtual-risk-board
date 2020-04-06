@@ -17,6 +17,10 @@ const Sidebar = styled.div`
   overflow-y: auto;
   float: left;
   padding: 0 1rem;
+
+  & * {
+    user-select: none;
+  }
 `
 
 const Zone = styled.div`
@@ -89,7 +93,7 @@ const Hand = styled.div`
 `
 
 const Card = styled.div`
-  background-color: white;
+  background-color: #e3e9e7;
   background-image: url(${props => props.bg});
   background-repeat: no-repeat;
   background-size: contain;
@@ -104,7 +108,7 @@ const CountryListItem = styled.li`
 
 const BoardDropZone = styled.div`
   position: absolute;
-  z-index: 100;
+  z-index: 200;
   background-color: #555;
   opacity: 0;
   right: 0;
@@ -197,8 +201,11 @@ class SidebarContainer extends Component {
   }
 
   onClickCard (type, index) {
-    const { action } = this.props
-    if (!(action.type === 'MOVE_CARD' && action.options.index === index)) {
+    const { action, game: { displayedCards }, user: { uid } } = this.props
+    if (
+      !(action.type === 'MOVE_CARD' && action.options.index === index) &&
+      !(displayedCards.userId === uid && displayedCards.list.find(c => c.cardIndex === index))
+    ) {
       this.props.onChangeAction({
         type: 'MOVE_CARD',
         options: {
@@ -239,7 +246,8 @@ class SidebarContainer extends Component {
       },
       game: {
         initialCountries,
-        colors: gameColors
+        colors: gameColors,
+        displayedCards
       },
       hand: {
         cards
@@ -250,10 +258,14 @@ class SidebarContainer extends Component {
     const color = gameColors[uid] || '#808080'
     const colorList = colors.filter(c => !Object.keys(gameColors).find(p => gameColors[p] === c))
     const myCountries = initialCountries[uid]
+    const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
 
     return (
       <Sidebar>
-        <BoardDropZone active={action.type === 'MOVE_CARD'} onClick={this.onClickBoard.bind(this)}>
+        <BoardDropZone
+          active={action.type === 'MOVE_CARD'}
+          onMouseUp={this.onClickBoard.bind(this)}
+        >
           Vis dette kort til de andre spillere
         </BoardDropZone>
         <Zone height='5rem' left>
@@ -282,8 +294,11 @@ class SidebarContainer extends Component {
             <Card
               key={index}
               bg={this.getCardBg(card)}
-              onClick={() => this.onClickCard(card, index)}
-              selected={action.type === 'MOVE_CARD' && action.options.index === index}
+              onMouseDown={() => this.onClickCard(card, index)}
+              selected={
+                (action.type === 'MOVE_CARD' && action.options.index === index) ||
+                myDisplayedCards.find(card => card.cardIndex === index)
+              }
             />
           ))}
         </Hand>

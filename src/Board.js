@@ -36,6 +36,7 @@ const CountryMarker = styled.div.attrs(props => ({
   display: flex;
   justify-content: center;
   align-items: center;
+  user-select: none;
 
   &:hover {
     width: 3vw;

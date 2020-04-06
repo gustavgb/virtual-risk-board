@@ -8,6 +8,7 @@ import card2Img from 'images/card_3.png'
 import { streamGame, streamHand, getUsers } from 'api/game'
 import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
+import DisplayedCards from 'DisplayedCards'
 
 const Root = styled.div`
   background-image: url(${bgImg});
@@ -131,6 +132,7 @@ class GameContainer extends Component {
           </ActionContainer>
         )
       case 'MOVE_CARD':
+      case 'MOVE_DISPLAYED_CARD':
         return (
           <ActionContainer
             x={mouseX}
@@ -163,6 +165,16 @@ class GameContainer extends Component {
 
     return (
       <Root>
+        {game.displayedCards.list.length > 0 && (
+          <DisplayedCards
+            displayedCards={game.displayedCards}
+            onChangeAction={this.onChangeAction.bind(this)}
+            users={users}
+            game={game}
+            user={user}
+            action={action}
+          />
+        )}
         <SidebarContainer
           action={action}
           user={user}
