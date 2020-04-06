@@ -56,19 +56,19 @@ export const createGame = (user) => {
 }
 
 export const joinGame = (user, gameId) => {
-  return database.ref(`hands/${gameId}${user.uid}`).transaction(hand => {
-    if (!hand) {
-      return {
-        cards: [],
-        player: user.uid,
-        game: gameId
+  return Promise.all([
+    database.ref(`hands/${gameId}${user.uid}`).transaction(hand => {
+      if (!hand) {
+        return {
+          cards: [],
+          player: user.uid,
+          game: gameId
+        }
       }
-    }
-    return hand
-  })
-    .then(() => database.ref(`games/${gameId}`).transaction(game => {
+      return hand
+    }),
+    database.ref(`games/${gameId}`).transaction(game => {
       if (game) {
-        console.log(game)
         let changedMembers = false
 
         if (!game.members) {
@@ -102,7 +102,8 @@ export const joinGame = (user, gameId) => {
       }
 
       return game
-    }))
+    })
+  ])
 }
 
 export const deleteGame = (game) => {
