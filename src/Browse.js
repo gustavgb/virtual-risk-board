@@ -7,13 +7,13 @@ import logo from 'images/card_back.png'
 
 const Root = styled.div`
   width: 50rem;
-  margin: 0 auto;
+  margin: 0 auto 100px;
   padding: 10rem 2rem;
   background-color: #ddd;
 `
 
 const Top = styled.div`
-  background-color: #aaa;
+  background-color: rgba(170, 170, 170, 0.5);
   padding: 2rem;
   margin-bottom: 2rem;
   display: grid;

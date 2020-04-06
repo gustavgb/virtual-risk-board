@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import App from './App'
+import App from 'App'
+import bgImg from 'images/bg.jpg'
 import { createGlobalStyle, ThemeProvider } from 'styled-components'
 import { BrowserRouter } from 'react-router-dom'
 import theme from 'theme'
@@ -16,6 +17,10 @@ const GlobalStyle = createGlobalStyle`
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 1.6rem;
+    background-image: url(${bgImg});
+    background-size: 100vw 100vh;
+    background-position: center;
+    background-attachment: fixed;
 
     & * {
       box-sizing: border-box;

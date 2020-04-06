@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import bgImg from 'images/bg.jpg'
 import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
@@ -12,9 +11,6 @@ import DisplayedCards from 'DisplayedCards'
 import EventLog from 'EventLog'
 
 const Root = styled.div`
-  background-image: url(${bgImg});
-  background-size: cover;
-  background-position: center;
   width: 100vw;
   height: 100vh;
 
