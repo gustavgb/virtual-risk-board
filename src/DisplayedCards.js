@@ -111,9 +111,9 @@ class DisplayedCards extends Component {
   }
 
   onTakeCard (card, index) {
-    const { action } = this.props
+    const { action, displayedCards, user: { uid } } = this.props
 
-    if (!(action.type === 'MOVE_DISPLAYED_CARD')) {
+    if (action.type !== 'MOVE_DISPLAYED_CARD' && displayedCards.userId === uid) {
       this.props.onChangeAction({
         type: 'MOVE_DISPLAYED_CARD',
         options: {

@@ -6,7 +6,6 @@ import { auth } from 'api'
 import Login from 'Login'
 import Browse from 'Browse'
 import GameContainer from 'Game'
-import { joinGame } from 'api/browse'
 import { withRouter, Route, Switch } from 'react-router-dom'
 import { connect } from 'react-redux'
 
@@ -35,11 +34,9 @@ class App extends Component {
   }
 
   onJoinGame (gameId) {
-    const { user } = this.state
     const { history } = this.props
 
-    joinGame(user, gameId)
-      .then(() => history.push(`/${gameId}`))
+    history.push(`/${gameId}`)
   }
 
   render () {

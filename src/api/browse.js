@@ -66,36 +66,39 @@ export const joinGame = (user, gameId) => {
     }
     return hand
   })
-    .then(database.ref(`games/${gameId}`).transaction(game => {
-      let changedMembers = false
+    .then(() => database.ref(`games/${gameId}`).transaction(game => {
+      if (game) {
+        console.log(game)
+        let changedMembers = false
 
-      if (!game.members) {
-        game.members = []
-        changedMembers = true
-      }
+        if (!game.members) {
+          game.members = []
+          changedMembers = true
+        }
 
-      if (!game.members.find(member => member === user.uid)) {
-        game.members.push(user.uid)
-        changedMembers = true
-      }
+        if (!game.members.find(member => member === user.uid)) {
+          game.members.push(user.uid)
+          changedMembers = true
+        }
 
-      if (changedMembers) {
-        const countriesShuffled = shuffle(countries.map(country => country.name))
-        let turn = 0
-        game.initialCountries = countriesShuffled.reduce((acc, country) => {
-          turn = (turn + 1) % game.members.length
-          return {
-            ...acc,
-            [game.members[turn]]: [
-              ...(acc[game.members[turn]] || []),
-              country
-            ]
-          }
-        }, {})
-      }
+        if (changedMembers) {
+          const countriesShuffled = shuffle(countries.map(country => country.name))
+          let turn = 0
+          game.initialCountries = countriesShuffled.reduce((acc, country) => {
+            turn = (turn + 1) % game.members.length
+            return {
+              ...acc,
+              [game.members[turn]]: [
+                ...(acc[game.members[turn]] || []),
+                country
+              ]
+            }
+          }, {})
+        }
 
-      if (!game.initialCountries) {
-        game.initialCountries = []
+        if (!game.initialCountries) {
+          game.initialCountries = []
+        }
       }
 
       return game

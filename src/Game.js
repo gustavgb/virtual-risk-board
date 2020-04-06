@@ -9,6 +9,7 @@ import { streamGame, streamHand, getUsers } from 'api/game'
 import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
 import DisplayedCards from 'DisplayedCards'
+import { joinGame } from 'api/browse'
 
 const Root = styled.div`
   background-image: url(${bgImg});
@@ -52,7 +53,7 @@ const ArmyMarker = styled.div`
   width: 2.5vw;
   height: 2.5vw;
   border-radius: 50%;
-  border: 1px solid black;
+  border: 2px solid black;
   color: ${props => props.theme.invertColor(props.color)};
   display: flex;
   justify-content: center;
@@ -98,30 +99,40 @@ class GameContainer extends Component {
   componentDidMount () {
     const { user, joinedGame } = this.props
 
-    this.streamGame = streamGame(user, joinedGame).subscribe(game => {
-      this.setState({
-        game
-      })
-    })
+    console.log(joinedGame)
 
-    this.streamHand = streamHand(user, joinedGame).subscribe(hand => {
-      this.setState({
-        hand
-      })
-    })
+    joinGame(user, joinedGame)
+      .then(() => {
+        this.streamGame = streamGame(user, joinedGame).subscribe(game => {
+          this.setState({
+            game
+          })
+        })
 
-    getUsers(joinedGame).then(users => {
-      this.setState({
-        users
+        this.streamHand = streamHand(user, joinedGame).subscribe(hand => {
+          this.setState({
+            hand
+          })
+        })
+
+        getUsers(joinedGame).then(users => {
+          this.setState({
+            users
+          })
+        })
       })
-    })
 
     window.addEventListener('mousemove', this._onMouseMove)
   }
 
   componentWillUnmount () {
-    this.streamGame.unsubscribe()
-    this.streamHand.unsubscribe()
+    if (this.streamGame) {
+      this.streamGame.unsubscribe()
+    }
+
+    if (this.streamHand) {
+      this.streamHand.unsubscribe()
+    }
 
     window.removeEventListener('mousemove', this._onMouseMove)
   }

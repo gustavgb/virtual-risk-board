@@ -198,7 +198,8 @@ export const removeDisplayedCard = (gameId, userId, cardIndex) => {
     if (game) {
       if (!game.displayedCards) {
         game.displayedCards = {
-          userId
+          userId,
+          list: []
         }
       }
 
@@ -209,6 +210,10 @@ export const removeDisplayedCard = (gameId, userId, cardIndex) => {
         game.displayedCards.list = game.displayedCards.list.filter(
           card => card.cardIndex !== cardIndex
         )
+      }
+
+      if (game.displayedCards.list.length === 0) {
+        game.displayedCards = null
       }
     }
 

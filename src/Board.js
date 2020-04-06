@@ -41,12 +41,13 @@ const CountryMarker = styled.div.attrs(props => ({
 }))`
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  border: 1px solid black;
+  border: ${props => props.highlight ? '4px solid #ffd612' : '2px solid black'};
   background-color: ${props => props.color};
   position: absolute;
   width: 2.5vw;
   height: 2.5vw;
   color: ${props => props.theme.invertColor(props.color)};
+  font-weight: bold;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -65,6 +66,11 @@ const CountryMarker = styled.div.attrs(props => ({
       height: 3vw;
     }
   `}
+
+  ${props => props.highlight && css`
+    width: 3vw;
+    height: 3vw;
+  `}
 `
 
 const Trash = styled.div`
@@ -76,11 +82,14 @@ const Trash = styled.div`
   height: 10vw;
   position: absolute;
   bottom: ${props => props.active ? '20px' : '-10vw'};
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   z-index: 100;
-  transition: bottom 1s ease-out;
+  transition: all 0.2s ease-out;
   background-color: rgba(100, 100, 100, 0.7);
+
+  &:hover {
+    background-color: rgba(200, 50, 0, 1);
+  }
 `
 
 class BoardContainer extends Component {
@@ -203,6 +212,11 @@ class BoardContainer extends Component {
             onClick={() => this.onClickCountry(country.name, army)}
             popout={pop}
             clickable
+            highlight={
+              action.type === 'MOVE_ARMY' &&
+              action.options.countryName === country.name &&
+              action.options.armyId === army.id
+            }
           >
             {army.amount}
             <CountryLabel>{country.name}</CountryLabel>
@@ -217,6 +231,10 @@ class BoardContainer extends Component {
             onClick={() => this.onClickCountry(country.name, null)}
             popout={pop}
             clickable={pop}
+            highlight={
+              action.type === 'MOVE_ARMY' &&
+              action.options.countryName === country.name
+            }
           >
             <CountryLabel>{country.name}</CountryLabel>
           </CountryMarker>
