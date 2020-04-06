@@ -39,16 +39,19 @@ export const streamState = (user, gameId) => {
   const gameRef = database.ref(`games/${gameId}`)
   const boardRef = database.ref(`boards/${gameId}`)
   const handRef = database.ref(`hands/${gameId}${user.uid}`)
+  const eventsRef = database.ref(`events/${gameId}`)
 
   return combineLatest(
     object(gameRef),
     object(boardRef),
-    object(handRef)
+    object(handRef),
+    object(eventsRef)
   ).pipe(
-    map(([game, board, hand]) => ({
+    map(([game, board, hand, events]) => ({
       game: mapGame({
         ...game.snapshot.val(),
         ...board.snapshot.val(),
+        events: events.snapshot.val(),
         id: gameId,
         timestamp: Date.now()
       }),
@@ -258,4 +261,25 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
 
       return game
     }))
+}
+
+export const pushToLog = (gameId, code, content) => {
+  database.ref(`events/${gameId}`).transaction(events => {
+    if (!events) {
+      events = []
+    }
+
+    const now = Date.now()
+
+    events = events.filter(event => event.expire > now)
+
+    events.push({
+      timestamp: now,
+      expire: now + 7500,
+      content,
+      code
+    })
+
+    return events
+  })
 }

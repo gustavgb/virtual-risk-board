@@ -113,6 +113,7 @@ export const deleteGame = (game) => {
     return Promise.all([
       database.ref(`games/${game.id}`).remove(),
       database.ref(`boards/${game.id}`).remove(),
+      database.ref(`events/${game.id}`).remove(),
       ...(game.members || []).map(member => database.ref(`hands/${game.id}${member}`).remove())
     ])
   }

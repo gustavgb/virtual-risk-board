@@ -5,7 +5,7 @@ import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
 import armyImg from 'images/army.png'
-import { setColors, takeCard, displayCard } from 'api/game'
+import { setColors, takeCard, displayCard, pushToLog } from 'api/game'
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
 import { fromString } from 'makeId'
@@ -159,10 +159,17 @@ class SidebarContainer extends Component {
     }
   }
 
+  pushToLog (code, content) {
+    const { game: { id } } = this.props
+
+    pushToLog(id, code, content)
+  }
+
   onChangeColor (color) {
     const {
       user: {
-        uid
+        uid,
+        name
       },
       game: {
         id
@@ -170,6 +177,12 @@ class SidebarContainer extends Component {
     } = this.props
 
     setColors(id, { [uid]: color })
+    this.pushToLog(
+      'CHANGE_COLOR',
+      {
+        user: name
+      }
+    )
   }
 
   onTakeCard () {
@@ -199,10 +212,16 @@ class SidebarContainer extends Component {
   }
 
   onPlaceCard () {
-    const { action, game: { id }, user: { uid } } = this.props
+    const { action, game: { id }, user: { uid, name } } = this.props
     if (action.type === 'TAKE_CARD') {
       this.props.onChangeAction({})
       takeCard(id, uid)
+      this.pushToLog(
+        'TAKE_CARD',
+        {
+          user: name
+        }
+      )
     }
   }
 
@@ -234,7 +253,8 @@ class SidebarContainer extends Component {
         displayedCards
       },
       user: {
-        uid
+        uid,
+        name
       }
     } = this.props
 
@@ -242,6 +262,13 @@ class SidebarContainer extends Component {
       case 'MOVE_CARD':
         if (displayedCards.userId === uid || !displayedCards.userId) {
           displayCard(id, uid, action.options.type, action.options.index)
+          this.pushToLog(
+            'DISPLAY_CARD',
+            {
+              user: name,
+              type: action.options.type
+            }
+          )
         }
         this.props.onChangeAction({})
         break

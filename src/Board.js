@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components'
 import boardImg from 'images/board.svg'
 import trashImg from 'images/trash.png'
 import { countriesDir } from 'constants/countries'
-import { placeArmy, removeArmy } from 'api/game'
+import { placeArmy, removeArmy, pushToLog } from 'api/game'
 
 const Board = styled.div.attrs(props => ({
   style: {
@@ -56,6 +56,7 @@ const CountryMarker = styled.div.attrs(props => ({
 
   &:hover > ${CountryLabel} {
     display: block;
+    z-index: 50;
   }
 
   ${props => props.clickable && css`
@@ -126,6 +127,12 @@ class BoardContainer extends Component {
     )
   }
 
+  pushToLog (code, content) {
+    const { game: { id } } = this.props
+
+    pushToLog(id, code, content)
+  }
+
   onResize () {
     const innerWidth = window.innerWidth * 0.8
     const innerHeight = window.innerHeight
@@ -153,7 +160,8 @@ class BoardContainer extends Component {
 
     const {
       user: {
-        uid
+        uid,
+        name
       },
       action,
       game: {
@@ -163,12 +171,18 @@ class BoardContainer extends Component {
 
     const isSame = shouldAdd && action.type === 'MOVE_ARMY' && action.options.countryName === countryName
 
-    if (action.type === 'PLACE_ARMY') {
+    if (action.type === 'PLACE_ARMY' || (action.type === 'MOVE_ARMY' && !isSame)) {
       placeArmy(id, uid, countryName, action.options.color, action.options.amount)
       this.props.onChangeAction({})
-    } else if (action.type === 'MOVE_ARMY' && !isSame) {
-      placeArmy(id, uid, countryName, action.options.color, action.options.amount)
-      this.props.onChangeAction({})
+      this.pushToLog(
+        'PLACE_ARMY',
+        {
+          user: name,
+          amount: action.options.amount,
+          origin: action.options.countryName || null,
+          destination: countryName
+        }
+      )
     } else if (action.type === 'MOVE_ARMY' || !action.type) {
       let amount = 1
       if (isSame) {
@@ -193,6 +207,21 @@ class BoardContainer extends Component {
     const { action } = this.props
     if (action.type) {
       this.props.onChangeAction({})
+    }
+  }
+
+  onDiscardArmy () {
+    const { action, user: { name } } = this.props
+    if (action.type === 'MOVE_ARMY') {
+      this.props.onChangeAction({})
+      this.pushToLog(
+        'DISCARD_ARMY',
+        {
+          user: name,
+          amount: action.options.amount,
+          country: action.options.countryName
+        }
+      )
     }
   }
 
@@ -265,7 +294,7 @@ class BoardContainer extends Component {
 
     return (
       <>
-        <Trash active={action.type === 'MOVE_ARMY'} onClick={this.onDiscardAction.bind(this)} />
+        <Trash active={action.type === 'MOVE_ARMY'} onClick={this.onDiscardArmy.bind(this)} />
         <Board width={width} height={height}>
           {joinedCountries.map(country => this.renderCountry(country))}
         </Board>

@@ -10,6 +10,7 @@ import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
 import DisplayedCards from 'DisplayedCards'
 import { joinGame } from 'api/browse'
+import EventLog from 'EventLog'
 
 const Root = styled.div`
   background-image: url(${bgImg});
@@ -203,11 +204,18 @@ class GameContainer extends Component {
       hand
     } = this.state
     const {
-      user
+      user: {
+        uid
+      }
     } = this.props
 
     if (!game || !users || !hand) {
       return 'Loading...'
+    }
+
+    const ownUser = {
+      ...users.find(user => user.id === uid),
+      uid
     }
 
     return (
@@ -219,13 +227,13 @@ class GameContainer extends Component {
             onChangeAction={this.onChangeAction.bind(this)}
             users={users}
             game={game}
-            user={user}
+            user={ownUser}
             action={action}
           />
         )}
         <SidebarContainer
           action={action}
-          user={user}
+          user={ownUser}
           users={users}
           hand={hand}
           game={game}
@@ -234,12 +242,13 @@ class GameContainer extends Component {
         <Content>
           <BoardContainer
             action={action}
-            user={user}
+            user={ownUser}
             users={users}
             hand={hand}
             game={game}
             onChangeAction={this.onChangeAction.bind(this)}
           />
+          <EventLog events={game.events} />
         </Content>
         {this.renderAction()}
       </Root>

@@ -3,7 +3,7 @@ import styled, { keyframes } from 'styled-components'
 import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
-import { removeDisplayedCard, discardDisplayedCards } from 'api/game'
+import { removeDisplayedCard, discardDisplayedCards, pushToLog } from 'api/game'
 
 const Root = styled.div`
   position: absolute;
@@ -110,6 +110,12 @@ class DisplayedCards extends Component {
     }
   }
 
+  pushToLog (code, content) {
+    const { game: { id } } = this.props
+
+    pushToLog(id, code, content)
+  }
+
   onTakeCard (card, index) {
     const { action, displayedCards, user: { uid } } = this.props
 
@@ -134,18 +140,32 @@ class DisplayedCards extends Component {
   }
 
   onReturnCard () {
-    const { action, game: { id }, user: { uid } } = this.props
+    const { action, game: { id }, user: { uid, name } } = this.props
 
     if (action.type === 'MOVE_DISPLAYED_CARD') {
       removeDisplayedCard(id, uid, action.options.cardIndex)
+      this.pushToLog(
+        'HIDE_CARD',
+        {
+          user: name,
+          type: action.options.type
+        }
+      )
       this.props.onChangeAction({})
     }
   }
 
   onDiscardCards () {
-    const { game: { id }, user: { uid }, displayedCards } = this.props
+    const { game: { id }, user: { uid, name }, displayedCards } = this.props
     if (window.confirm('Vil du smide disse kort?')) {
       discardDisplayedCards(id, uid, displayedCards.list)
+      this.pushToLog(
+        'DISCARD_CARDS',
+        {
+          user: name,
+          cards: displayedCards.list.map(cards => cards.cardType)
+        }
+      )
     }
   }
 
