@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import boardImg from 'images/board.svg'
 import trashImg from 'images/trash.png'
 import { countriesDir } from 'constants/countries'
@@ -40,10 +40,14 @@ const CountryMarker = styled.div.attrs(props => ({
   user-select: none;
   z-index: ${props => props.popout ? 200 : 0};
 
-  &:hover {
-    width: 3vw;
-    height: 3vw;
-  }
+  ${props => props.clickable && css`
+    cursor: pointer;
+
+    &:hover {
+      width: 3vw;
+      height: 3vw;
+    }
+  `}
 `
 
 const Trash = styled.div`
@@ -131,7 +135,7 @@ class BoardContainer extends Component {
 
     switch (action.type) {
       case 'PLACE_ARMY':
-        placeArmy(id, uid, countryName)
+        placeArmy(id, uid, countryName, action.options.color, action.options.amount)
         this.props.onChangeAction({})
         break
       case 'MOVE_ARMY':
@@ -181,6 +185,7 @@ class BoardContainer extends Component {
             y={country.y * height}
             onClick={() => this.onClickCountry(country.name, army)}
             popout={pop}
+            clickable
           >
             {army.amount}
           </CountryMarker>
@@ -193,6 +198,7 @@ class BoardContainer extends Component {
             y={country.y * height}
             onClick={() => this.onClickCountry(country.name, null)}
             popout={pop}
+            clickable={pop}
           />
         )}
       </React.Fragment>

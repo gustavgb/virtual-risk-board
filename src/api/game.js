@@ -92,7 +92,7 @@ export const takeCard = (gameId, userId) => {
   })
 }
 
-export const placeArmy = (gameId, userId, country, color) => {
+export const placeArmy = (gameId, userId, country, color, amount = 1) => {
   return database.ref(`games/${gameId}`).transaction(game => {
     if (game) {
       if (!color) {
@@ -116,7 +116,7 @@ export const placeArmy = (gameId, userId, country, color) => {
                 ...armies,
                 [key]: {
                   color,
-                  amount: prevAmount + 1
+                  amount: prevAmount + amount
                 }
               }
             }

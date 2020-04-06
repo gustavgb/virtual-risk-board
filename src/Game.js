@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import bgImg from 'images/bg.jpg'
-import armyImg from 'images/army.png'
 import card0Img from 'images/card_1.png'
 import card1Img from 'images/card_2.png'
 import card2Img from 'images/card_3.png'
@@ -156,7 +155,9 @@ class GameContainer extends Component {
             x={mouseX}
             y={mouseY}
           >
-            <img src={armyImg} alt='Army' />
+            <ArmyMarker color={action.options.color}>
+              {action.options.amount}
+            </ArmyMarker>
           </ActionContainer>
         )
       case 'MOVE_CARD':

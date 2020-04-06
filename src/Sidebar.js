@@ -178,9 +178,23 @@ class SidebarContainer extends Component {
   }
 
   onTakeArmy () {
-    this.props.onChangeAction({
-      type: 'PLACE_ARMY'
-    })
+    const { game: { colors }, user: { uid }, action } = this.props
+
+    let amount = 1
+
+    if (action.type === 'PLACE_ARMY') {
+      amount += action.options.amount
+    }
+
+    if (colors[uid]) {
+      this.props.onChangeAction({
+        type: 'PLACE_ARMY',
+        options: {
+          color: colors[uid],
+          amount
+        }
+      })
+    }
   }
 
   onPlaceCard () {
