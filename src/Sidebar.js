@@ -268,7 +268,7 @@ class SidebarContainer extends Component {
     const colorList = colors.filter(c => !Object.keys(gameColors).find(p => gameColors[p] === c))
     const myInitialCountries = initialCountries[uid]
     const myColorId = fromString(color)
-    const myCountries = countries.filter(country => !!country.armies[myColorId]).map(country => country.name)
+    const myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
     const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
 
     return (
@@ -330,7 +330,7 @@ class SidebarContainer extends Component {
           </Hand>
         </Zone>
         <Details>
-          <summary><h3>Mine lande</h3></summary>
+          <summary><h3>Mine lande ({myCountries.length})</h3></summary>
           <ul>
             {myCountries.map(country => (
               <CountryListItem key={country}>{country}</CountryListItem>
