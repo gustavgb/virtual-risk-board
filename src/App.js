@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { auth } from 'api'
 import Login from 'Login'
 import Browse from 'Browse'
-import Board from 'Board'
+import GameContainer from 'Game'
 import { joinGame } from 'api/browse'
 import { withRouter, Route, Switch } from 'react-router-dom'
 import { connect } from 'react-redux'
@@ -59,7 +59,7 @@ class App extends Component {
             <Route
               path='/:gameId'
               render={({ match: { params } }) => (
-                <Board joinedGame={params.gameId} user={user} />
+                <GameContainer joinedGame={params.gameId} user={user} />
               )}
             />
             <Route
