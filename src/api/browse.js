@@ -1,5 +1,5 @@
 import { database } from 'api'
-import { list } from 'rxfire/database'
+import { list, object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 import { countries } from 'constants/countries'
 import { v4 as uuid } from 'uuid'
@@ -21,6 +21,12 @@ export const streamMyGames = (id) => {
         return 0
       }))
     )
+}
+
+export const streamUser = (uid) => {
+  return object(database.ref(`users/${uid}`)).pipe(
+    map(user => ({ ...user.snapshot.val(), uid, id: uid }))
+  )
 }
 
 export const createGame = (user) => {

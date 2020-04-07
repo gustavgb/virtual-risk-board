@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 
 import styled from 'styled-components'
 import logo from 'images/card_back.png'
-import { register, login } from 'api/login'
+import { register, login } from 'api/user'
 
 const Root = styled.div`
   width: 30rem;

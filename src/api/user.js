@@ -72,3 +72,15 @@ export const logout = (email, password) => {
       type: 'LOGOUT'
     }))
 }
+
+export const changeUsername = (uid) => {
+  const newName = window.prompt('Skriv et nyt navn')
+
+  if (!newName || !uid) {
+    return Promise.resolve()
+  }
+
+  return database.ref(`users/${uid}`).update({
+    name: newName
+  })
+}

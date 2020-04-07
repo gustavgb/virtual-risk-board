@@ -27,17 +27,27 @@ class ExpireringMessage extends Component {
     this.state = {
       expired: false
     }
+
+    this.unmounted = false
   }
 
   componentDidMount () {
     const timeLeft = this.props.expire - Date.now() - 500
 
     window.setTimeout(
-      () => this.setState({
-        expired: true
-      }),
+      () => {
+        if (!this.unmounted) {
+          this.setState({
+            expired: true
+          })
+        }
+      },
       timeLeft
     )
+  }
+
+  componentWillUnmount () {
+    this.unmounted = true
   }
 
   render () {

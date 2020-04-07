@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
-import { streamMyGames, createGame, deleteGame, changeTitle, checkCode } from 'api/browse'
+import { streamMyGames, createGame, deleteGame, changeTitle, checkCode, streamUser } from 'api/browse'
 import styled from 'styled-components'
-import { logout } from 'api/login'
+import { logout, changeUsername } from 'api/user'
 import { withRouter } from 'react-router-dom'
 import logo from 'images/card_back.png'
 
@@ -68,6 +68,10 @@ const UserInfo = styled.div`
   flex-direction: column;
   align-items: flex-end;
   width: 100%;
+
+  & > div {
+    margin-bottom: 5px;
+  }
 `
 
 class Browse extends Component {
@@ -75,11 +79,13 @@ class Browse extends Component {
     super(props)
 
     this.state = {
-      games: [],
+      games: null,
+      user: null,
       error: null,
       code: ''
     }
 
+    this.streamMyGames = null
     this.streamMyGames = null
   }
 
@@ -88,10 +94,22 @@ class Browse extends Component {
     this.streamMyGames = streamMyGames(user.uid).subscribe(games => {
       this.setState({ games })
     })
+
+    this.streamUser = streamUser(user.uid).subscribe(user => {
+      this.setState({
+        user
+      })
+    })
   }
 
   componentWillUnmount () {
-    this.streamMyGames.unsubscribe()
+    if (this.streamMyGames) {
+      this.streamMyGames.unsubscribe()
+    }
+
+    if (this.streamUser) {
+      this.streamUser.unsubscribe()
+    }
   }
 
   onChangeCode ({ target: { value } }) {
@@ -99,6 +117,12 @@ class Browse extends Component {
       code: value,
       error: null
     })
+  }
+
+  onChangeUsername () {
+    const { user: { uid } } = this.state
+
+    changeUsername(uid)
   }
 
   onJoinGame (gameId, event) {
@@ -123,18 +147,21 @@ class Browse extends Component {
     const {
       games,
       error,
+      user,
       code
     } = this.state
-    const {
-      user
-    } = this.props
+
+    if (!games || !user) {
+      return 'Loading...'
+    }
 
     return (
       <>
         <Top>
           <Logo />
           <UserInfo>
-            <div>Logget ind som {user.name} ({user.email})</div>
+            <div>Logget ind som {user.name ? `${user.name} (${user.email})` : user.email}</div>
+            <Button onClick={this.onChangeUsername.bind(this)}>Ændre navn</Button>
             <Button onClick={() => logout()}>Log ud</Button>
           </UserInfo>
         </Top>
