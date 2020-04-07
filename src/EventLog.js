@@ -60,7 +60,7 @@ class ExpireringMessage extends Component {
 class EventLog extends Component {
   shouldComponentUpdate (nextProps) {
     const now = Date.now()
-    return nextProps.events.length !== this.props.events.filter(event => event.expire > now).length
+    return nextProps.events.filter(event => event.expire > now).length !== this.props.events.filter(event => event.expire > now).length
   }
 
   parseEvent ({ code, content: options = {} }) {

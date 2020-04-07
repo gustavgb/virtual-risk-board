@@ -382,7 +382,7 @@ class SidebarContainer extends Component {
           <summary><h3>Medspillere</h3></summary>
           <ul>
             {users.map(user => (
-              <ListItem key={uid}>{user.name}</ListItem>
+              <ListItem key={user.id}>{user.name}</ListItem>
             ))}
           </ul>
         </Details>
