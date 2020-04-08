@@ -3,6 +3,7 @@ import { list, object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 import { countries } from 'constants/countries'
 import { generateId } from 'makeId'
+import { missions } from 'constants/missions'
 
 export const streamMyGames = (id) => {
   return list(database.ref('games').orderByChild('creator').equalTo(id))
@@ -42,7 +43,8 @@ export const createGame = (user) => {
     id,
     title,
     creator: user.uid,
-    colors: {}
+    colors: {},
+    missions: { ...missions }
   })
   database.ref(`boards/${id}`).set({
     countries: countries.map(country => ({
