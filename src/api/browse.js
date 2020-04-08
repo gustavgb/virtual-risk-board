@@ -2,7 +2,7 @@ import { database } from 'api'
 import { list, object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 import { countries } from 'constants/countries'
-import { v4 as uuid } from 'uuid'
+import { generateId } from 'makeId'
 
 export const streamMyGames = (id) => {
   return list(database.ref('games').orderByChild('creator').equalTo(id))
@@ -36,7 +36,7 @@ export const createGame = (user) => {
     return Promise.resolve()
   }
 
-  const id = uuid()
+  const id = generateId()
 
   database.ref(`games/${id}`).set({
     id,

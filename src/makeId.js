@@ -1,4 +1,11 @@
-const legalChars = 'abcdefghijklmnopqrstuvwxyz1234567890'.split('')
+import shortid from 'shortid'
+
+const idChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_'
+const charsList = idChars.split('')
+
+shortid.characters(idChars)
 
 export const fromString = (str) =>
-  str.split('').filter(letter => legalChars.indexOf(letter) > -1).join('')
+  str.split('').filter(letter => charsList.indexOf(letter) > -1).join('')
+
+export const generateId = () => shortid.generate()
