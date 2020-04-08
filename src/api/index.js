@@ -1,6 +1,7 @@
 import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/database'
+import 'firebase/functions'
 
 const app = window.firebase = firebase.initializeApp({
   apiKey: 'AIzaSyBLbhRbywY8XTdUXJUvhWBu3ERxOVbFrtE',
@@ -15,5 +16,6 @@ const app = window.firebase = firebase.initializeApp({
 
 export const auth = app.auth()
 export const database = app.database()
+export const getServerTime = app.functions('europe-west1').httpsCallable('getServerTime')
 
 export default app

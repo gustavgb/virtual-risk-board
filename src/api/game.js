@@ -1,9 +1,10 @@
-import { database } from 'api'
+import { database, getServerTime } from 'api'
 import { object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
 import { fromString } from 'makeId'
 import { combineLatest } from 'rxjs'
 import { countries } from 'constants/countries'
+import store from 'store'
 
 function shuffle (array) {
   var currentIndex = array.length; var temporaryValue; var randomIndex
@@ -23,28 +24,36 @@ function shuffle (array) {
   return array
 }
 
-const mapGame = (game) => ({
-  colors: {},
-  members: [],
-  events: [],
-  creator: null,
-  title: null,
-  id: null,
-  initialCountries: [],
-  ...game,
-  displayedCards: {
-    list: [],
-    ...(game.displayedCards || {})
-  },
-  countries: (game.countries || []).map(country => ({
-    armies: {},
-    ...country,
-    armiesList: Object.keys(country.armies || {}).map(key => ({
-      ...country.armies[key],
-      id: key
+const mapGame = (game) => {
+  const timeOffset = store.getState().timeOffset
+
+  return {
+    colors: {},
+    members: [],
+    creator: null,
+    title: null,
+    id: null,
+    initialCountries: [],
+    ...game,
+    events: (game.events || []).map(event => ({
+      ...event,
+      timestamp: event.timestamp - timeOffset,
+      expire: event.expire - timeOffset
+    })),
+    displayedCards: {
+      list: [],
+      ...(game.displayedCards || {})
+    },
+    countries: (game.countries || []).map(country => ({
+      armies: {},
+      ...country,
+      armiesList: Object.keys(country.armies || {}).map(key => ({
+        ...country.armies[key],
+        id: key
+      }))
     }))
-  }))
-})
+  }
+}
 
 const mapHand = (hand) => ({
   cards: [],
@@ -56,6 +65,10 @@ const mapHand = (hand) => ({
 
 export const joinGame = (user, gameId) => {
   return Promise.all([
+    getServerTime().then(({ data: serverTime }) => store.dispatch({
+      type: 'SET_TIME_OFFSET',
+      offset: serverTime - Date.now()
+    })),
     database.ref(`hands/${gameId}${user.uid}`).transaction(hand => {
       if (!hand) {
         return {
@@ -334,12 +347,14 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
 }
 
 export const pushToLog = (gameId, userId, code, content) => {
+  const timeOffset = store.getState().timeOffset
+
   database.ref(`events/${gameId}`).transaction(events => {
     if (!events) {
       events = []
     }
 
-    const now = Date.now()
+    const now = Date.now() + timeOffset
 
     events = events.filter(event => event.expire > now)
 
