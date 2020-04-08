@@ -1,14 +1,12 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
-import card0Img from 'images/card_1.png'
-import card1Img from 'images/card_2.png'
-import card2Img from 'images/card_3.png'
 import armyImg from 'images/army.png'
 import { setColors, takeCard, displayCard, pushToLog } from 'api/game'
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
-import { fromString } from 'makeId'
+import { fromString } from 'utils/makeId'
+import Card from 'Card'
 
 const Sidebar = styled.div`
   width: 20vw;
@@ -86,16 +84,6 @@ const Hand = styled.div`
   grid-gap: 1rem;
 `
 
-const Card = styled.div`
-  background-color: #e3e9e7;
-  background-image: url(${props => props.bg});
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-  height: 10vw;
-  opacity: ${props => props.selected ? '0.5' : '1'};
-`
-
 const ListItem = styled.li`
   color: ${props => props.done ? '#0f0' : 'white'};
 `
@@ -144,19 +132,6 @@ class SidebarContainer extends Component {
       nextProps.game.timestamp !== this.props.game.timestamp ||
       (nextProps.hand.cards && nextProps.hand.cards.length) !== (this.props.hand.cards && this.props.hand.cards.length)
     )
-  }
-
-  getCardBg (card) {
-    switch (card) {
-      case 0:
-        return card0Img
-      case 1:
-        return card1Img
-      case 2:
-        return card2Img
-      default:
-        return ''
-    }
   }
 
   pushToLog (code, content) {
@@ -351,7 +326,7 @@ class SidebarContainer extends Component {
             {cards.map((card, index) => (
               <Card
                 key={index}
-                bg={this.getCardBg(card)}
+                type={card}
                 onMouseDown={() => this.onMoveCard(card, index)}
                 selected={
                   (action.type === 'MOVE_CARD' && action.options.index === index) ||
@@ -361,6 +336,12 @@ class SidebarContainer extends Component {
             ))}
           </Hand>
         </Zone>
+        <Details open>
+          <summary><h3>Mission</h3></summary>
+          <Card
+            label='Missionskort'
+          />
+        </Details>
         <Details>
           <summary><h3>Mine lande ({myCountries.length})</h3></summary>
           <ul>

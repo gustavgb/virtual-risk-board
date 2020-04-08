@@ -1,28 +1,12 @@
 import { database, getServerTime } from 'api'
 import { object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
-import { fromString } from 'makeId'
+import { fromString } from 'utils/makeId'
 import { combineLatest } from 'rxjs'
 import { countries } from 'constants/countries'
 import store from 'store'
-
-function shuffle (array) {
-  var currentIndex = array.length; var temporaryValue; var randomIndex
-
-  // While there remain elements to shuffle...
-  while (currentIndex !== 0) {
-    // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex)
-    currentIndex -= 1
-
-    // And swap it with the current element.
-    temporaryValue = array[currentIndex]
-    array[currentIndex] = array[randomIndex]
-    array[randomIndex] = temporaryValue
-  }
-
-  return array
-}
+import { distribute, giveRandom } from 'utils/initialization'
+import { missions } from 'constants/missions'
 
 const mapGame = (game) => {
   const timeOffset = store.getState().timeOffset
@@ -93,22 +77,16 @@ export const joinGame = (user, gameId) => {
         }
 
         if (changedMembers) {
-          const countriesShuffled = shuffle(countries.map(country => country.name))
-          let turn = 0
-          game.initialCountries = countriesShuffled.reduce((acc, country) => {
-            turn = (turn + 1) % game.members.length
-            return {
-              ...acc,
-              [game.members[turn]]: [
-                ...(acc[game.members[turn]] || []),
-                country
-              ]
-            }
-          }, {})
+          game.initialCountries = distribute(game.members, countries.map(country => country.name))
+          game.missions = giveRandom(game.members, missions)
         }
 
         if (!game.initialCountries) {
           game.initialCountries = []
+        }
+
+        if (!game.missions) {
+          game.missions = {}
         }
       }
 

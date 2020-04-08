@@ -1,9 +1,7 @@
 import React, { Component } from 'react'
 import styled, { keyframes } from 'styled-components'
-import card0Img from 'images/card_1.png'
-import card1Img from 'images/card_2.png'
-import card2Img from 'images/card_3.png'
 import { removeDisplayedCard, discardDisplayedCards, pushToLog } from 'api/game'
+import Card from 'Card'
 
 const Root = styled.div`
   position: absolute;
@@ -53,13 +51,7 @@ const flyIn = keyframes`
   }
 `
 
-const Card = styled.div`
-  background-color: #e3e9e7;
-  background-image: url(${props => props.bg});
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-  height: 10vw;
+const CardWrapper = styled.div`
   width: 6vw;
   animation: ${flyIn} 1s ease-out;
   margin-left: 16px;
@@ -95,19 +87,6 @@ class DisplayedCards extends Component {
       nextProps.displayedCards.list.length !== this.props.displayedCards.list.length ||
       nextProps.action.type !== this.props.action.type
     )
-  }
-
-  getCardBg (card) {
-    switch (card) {
-      case 0:
-        return card0Img
-      case 1:
-        return card1Img
-      case 2:
-        return card2Img
-      default:
-        return ''
-    }
   }
 
   pushToLog (code, content) {
@@ -186,12 +165,12 @@ class DisplayedCards extends Component {
           </Header>
           <CardContainer>
             {displayedCards.list.map((card, index) => (
-              <Card
-                bg={this.getCardBg(card.cardType)}
-                key={card.cardIndex}
-                onMouseDown={() => this.onTakeCard(card, index)}
-                selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
-              />
+              <CardWrapper key={card.cardIndex} selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}>
+                <Card
+                  type={card.cardType}
+                  onMouseDown={() => this.onTakeCard(card, index)}
+                />
+              </CardWrapper>
             ))}
           </CardContainer>
         </Root>
