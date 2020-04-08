@@ -82,7 +82,6 @@ export const joinGame = (user, gameId) => {
     database.ref(`games/${gameId}`).transaction(game => {
       if (game) {
         let changedMembers = false
-
         if (!game.members) {
           game.members = []
           changedMembers = true
@@ -161,7 +160,7 @@ export const getUsers = (gameId) => {
   })
 }
 
-export const setColors = (gameId, colors) => {
+export const setColors = (gameId, uid, color) => {
   return database.ref(`games/${gameId}`).transaction(game => {
     if (game) {
       if (!game.colors) {
@@ -170,7 +169,7 @@ export const setColors = (gameId, colors) => {
 
       game.colors = {
         ...game.colors,
-        ...colors
+        [uid]: color
       }
     }
     return game

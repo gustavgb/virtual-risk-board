@@ -9,6 +9,7 @@ import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
 import DisplayedCards from 'DisplayedCards'
 import EventLog from 'EventLog'
+import ColorPicker from 'ColorPicker'
 
 const Root = styled.div`
   width: 100vw;
@@ -211,6 +212,15 @@ class GameContainer extends Component {
     const ownUser = {
       ...users.find(user => user.id === uid),
       uid
+    }
+
+    if (!game.colors[ownUser.uid]) {
+      return (
+        <ColorPicker
+          user={ownUser}
+          game={game}
+        />
+      )
     }
 
     return (

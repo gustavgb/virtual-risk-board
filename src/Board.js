@@ -63,6 +63,7 @@ const CountryMarker = styled.div.attrs(props => ({
     cursor: pointer;
 
     &:hover {
+      z-index: 200;
       width: 3vw;
       height: 3vw;
     }
@@ -95,8 +96,8 @@ const Trash = styled.div`
 
 const locate = keyframes`
   0% {
-    width: 100vw;
-    height: 100vw;
+    width: 30vw;
+    height: 30vw;
     border-width: 1vw;
   }
 
@@ -113,7 +114,7 @@ const CountryLocator = styled.div`
   top: ${props => props.y}px;
   border-radius: 50%;
   border: 0 solid darkred;
-  animation: ${locate} 2s ease-out;
+  animation: ${locate} 1s ease-in;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 500;
@@ -331,7 +332,7 @@ class BoardContainer extends Component {
           {joinedCountries.map(country => this.renderCountry(country))}
           {events.map(event => {
             if (
-              event.timestamp + 2000 > Date.now() &&
+              event.timestamp + 1000 > Date.now() &&
               (event.code === 'PLACE_ARMY' || event.code === 'DISCARD_ARMY') &&
               event.userId !== uid
             ) {

@@ -65,7 +65,7 @@ const Details = styled.details`
 
 const Select = styled.select`
   width: 100%;
-  background-color: ${props => props.color};
+  background: transparent;
   color: ${props => props.theme.invertColor(props.color)};
 `
 
@@ -176,7 +176,7 @@ class SidebarContainer extends Component {
       }
     } = this.props
 
-    setColors(id, { [uid]: color })
+    setColors(id, uid, color)
     this.pushToLog(
       'CHANGE_COLOR',
       {
@@ -295,10 +295,10 @@ class SidebarContainer extends Component {
       action
     } = this.props
 
-    const color = gameColors[uid] || '#808080'
-    const colorList = colors.filter(c => !Object.keys(gameColors).find(p => gameColors[p] === c))
+    const selectedColor = colors.find(c => c.hex === gameColors[uid])
+    const filteredColors = colors.filter(c => !Object.keys(gameColors).find(key => gameColors[key] === c.hex && gameColors[uid] !== c.hex))
     const myInitialCountries = initialCountries[uid]
-    const myColorId = fromString(color)
+    const myColorId = fromString(selectedColor.hex)
     const myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
     const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
 
@@ -323,20 +323,19 @@ class SidebarContainer extends Component {
           </Link>
         </Zone>
         <Zone
-          color={color}
+          color={selectedColor.hex}
           bg={armyImg}
           top
           onClick={this.onTakeArmy.bind(this)}
           popout={action.type === 'PLACE_ARMY'}
         >
           <Select
-            value={color}
-            color={color}
+            value={selectedColor.hex}
+            color={selectedColor.hex}
             onChange={(e) => this.onChangeColor(e.target.value)}
             onClick={e => e.stopPropagation()}
           >
-            <Option color='#808080' value=''>Vælg farve</Option>
-            {colorList.map(c => <Option key={c} color={c} value={c} />)}
+            {filteredColors.map(c => <Option key={c.hex} color={c.hex} value={c.hex}>{c.name}</Option>)}
           </Select>
         </Zone>
         <Zone bg={cardBackImg} color='#751b18' onMouseDown={this.onTakeCard.bind(this)} />
