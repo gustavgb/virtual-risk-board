@@ -142,6 +142,11 @@ const PresenceStatus = styled.span`
   display: inline-block;
 `
 
+const Username = styled.span`
+  color: ${props => props.theme.invertColor(props.color)};
+  background-color: ${props => props.color};
+`
+
 class SidebarContainer extends Component {
   shouldComponentUpdate (nextProps) {
     return (
@@ -428,7 +433,7 @@ class SidebarContainer extends Component {
                 const territories = countries.filter(country => !!country.armies[colorId] && country.armiesList.length === 1).length
                 return (
                   <ListItem key={user.id}>
-                    {user.name}
+                    <Username color={gameColors[user.id]}>{user.name}</Username>
                     <PresenceStatus online={status[user.id]} />
                     <ul>
                       <li>Armérer: {armies}</li>
