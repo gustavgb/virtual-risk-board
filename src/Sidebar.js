@@ -299,7 +299,8 @@ class SidebarContainer extends Component {
         initialCountries,
         countries,
         colors: gameColors,
-        displayedCards
+        displayedCards,
+        status
       },
       hand: {
         cards,
@@ -412,7 +413,7 @@ class SidebarContainer extends Component {
           <summary><h3>Medspillere</h3></summary>
           <ul>
             {users.map(user => (
-              <ListItem key={user.id}>{user.name}</ListItem>
+              <ListItem key={user.id} done={status[user.id]}>{user.name}</ListItem>
             ))}
           </ul>
         </Details>
