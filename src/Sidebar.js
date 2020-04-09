@@ -404,7 +404,7 @@ class SidebarContainer extends Component {
             }
           />
         </Details>
-        <Details>
+        <Details open>
           <summary><h3>Mine lande ({myCountries.length})</h3></summary>
           <ul>
             {myCountries.map(country => (
@@ -420,7 +420,7 @@ class SidebarContainer extends Component {
             ))}
           </ul>
         </Details>
-        <Details>
+        <Details open>
           <summary><h3>Medspillere</h3></summary>
           <ul>
             {users.map(user => (
