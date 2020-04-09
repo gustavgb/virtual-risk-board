@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
-import { streamState, getUsers, joinGame, connectToPresence } from 'api/game'
+import { streamState, joinGame, connectToPresence } from 'api/game'
 import SidebarContainer from 'Sidebar'
 import BoardContainer from 'Board'
 import DisplayedCards from 'DisplayedCards'
@@ -104,14 +104,8 @@ class GameContainer extends Component {
       .then(() => {
         this.connectToPresence = connectToPresence(joinedGame, user.uid)
 
-        this.streamState = streamState(user, joinedGame).subscribe(state => {
+        this.streamState = streamState(user, joinedGame).subscribe((state) => {
           this.setState(state)
-        })
-
-        getUsers(joinedGame).then(users => {
-          this.setState({
-            users
-          })
         })
       })
       .catch(() => this.setState({
@@ -127,7 +121,7 @@ class GameContainer extends Component {
     }
 
     if (this.connectToPresence) {
-      this.connectToPresence.cancel()
+      this.connectToPresence()
     }
 
     window.removeEventListener('mousemove', this._onMouseMove)

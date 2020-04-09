@@ -1,6 +1,6 @@
 import { database, getServerTime } from 'api'
 import { object } from 'rxfire/database'
-import { map } from 'rxjs/operators'
+import { map, switchMap } from 'rxjs/operators'
 import { fromString } from 'utils/makeId'
 import { combineLatest } from 'rxjs'
 import { countries } from 'constants/countries'
@@ -108,14 +108,22 @@ export const streamState = (user, gameId) => {
   const boardRef = database.ref(`boards/${gameId}`)
   const handRef = database.ref(`hands/${gameId}${user.uid}`)
   const eventsRef = database.ref(`events/${gameId}`)
+  const membersRef = database.ref(`games/${gameId}/members`)
 
   return combineLatest(
     object(gameRef),
     object(boardRef),
     object(handRef),
-    object(eventsRef)
+    object(eventsRef),
+    object(membersRef).pipe(
+      switchMap(members => combineLatest(
+        ...(members.snapshot.exists() ? members.snapshot.val() : [])
+          .map(member => object(database.ref(`users/${member}`)))
+      )),
+      map(users => users.map(user => ({ ...user.snapshot.val(), id: user.snapshot.key })))
+    )
   ).pipe(
-    map(([game, board, hand, events]) => ({
+    map(([game, board, hand, events, users]) => ({
       game: mapGame({
         ...game.snapshot.val(),
         ...board.snapshot.val(),
@@ -123,6 +131,7 @@ export const streamState = (user, gameId) => {
         id: gameId,
         timestamp: Date.now()
       }),
+      users,
       hand: mapHand({
         ...hand.snapshot.val(),
         id: gameId + user.uid
@@ -394,5 +403,8 @@ export const connectToPresence = (gameId, uid) => {
     })
   })
 
-  return userStatusRef.onDisconnect()
+  return () => {
+    userStatusRef.onDisconnect().cancel()
+    userStatusRef.set(false)
+  }
 }

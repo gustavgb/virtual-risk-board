@@ -86,6 +86,9 @@ const Hand = styled.div`
 
 const ListItem = styled.li`
   color: ${props => props.done ? '#0f0' : 'white'};
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 `
 
 const BoardDropZone = styled.div`
@@ -131,6 +134,14 @@ const Button = styled.button`
   margin: 10px 0;
   display: block;
   cursor: pointer;
+`
+
+const PresenceStatus = styled.span`
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  background-color: ${props => props.online ? '#0f0' : '#f00'};
+  margin-left: 0.5rem;
 `
 
 class SidebarContainer extends Component {
@@ -413,7 +424,10 @@ class SidebarContainer extends Component {
           <summary><h3>Medspillere</h3></summary>
           <ul>
             {users.map(user => (
-              <ListItem key={user.id} done={status[user.id]}>{user.name}</ListItem>
+              <ListItem key={user.id}>
+                {user.name}
+                <PresenceStatus online={status[user.id]} />
+              </ListItem>
             ))}
           </ul>
         </Details>
