@@ -326,8 +326,6 @@ class SidebarContainer extends Component {
     const myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
     const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
 
-
-
     return (
       <Sidebar>
         <BoardDropZone
