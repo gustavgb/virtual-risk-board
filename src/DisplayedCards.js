@@ -127,7 +127,9 @@ class DisplayedCards extends Component {
         'HIDE_CARD',
         {
           user: name,
-          type: action.options.type
+          type: action.options.cardIndex === 'mission'
+            ? action.options.cardIndex
+            : action.options.type
         }
       )
       this.props.onChangeAction({})
@@ -166,14 +168,14 @@ class DisplayedCards extends Component {
           <CardContainer>
             {displayedCards.list.map((card, index) => (
               <CardWrapper
-                key={`${card.cardType}${card.cardIndex}`}
+                key={card.cardIndex}
                 selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
-                width={card.cardType === 'mission' ? '9.24vw' : '6vw'}
+                width={card.cardIndex === 'mission' ? '9.24vw' : '6vw'}
               >
                 <Card
                   type={card.cardType}
-                  landscape={card.cardType === 'mission'}
-                  label={card.cardType === 'mission' ? 'Missionskort' : ''}
+                  landscape={card.cardIndex === 'mission'}
+                  label={card.cardIndex === 'mission' ? card.cardType : ''}
                   onMouseDown={() => this.onTakeCard(card, index)}
                 />
               </CardWrapper>

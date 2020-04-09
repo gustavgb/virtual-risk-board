@@ -277,7 +277,9 @@ class SidebarContainer extends Component {
             'DISPLAY_CARD',
             {
               user: name,
-              type: action.options.type
+              type: action.options.index === 'mission'
+                ? action.options.index
+                : action.options.type
             }
           )
         }
@@ -383,10 +385,10 @@ class SidebarContainer extends Component {
           <Card
             label={mission}
             landscape
-            onMouseDown={() => this.onMoveCard('mission', 0)}
+            onMouseDown={() => this.onMoveCard(mission, 'mission')}
             selected={
-              (action.type === 'MOVE_CARD' && action.options.type === 'mission') ||
-              myDisplayedCards.find(card => card.cardType === 'mission')
+              (action.type === 'MOVE_CARD' && action.options.index === 'mission') ||
+              myDisplayedCards.find(card => card.cardIndex === 'mission')
             }
           />
         </Details>

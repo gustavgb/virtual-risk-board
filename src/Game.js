@@ -168,7 +168,7 @@ class GameContainer extends Component {
             x={mouseX}
             y={mouseY}
           >
-            {action.options.type === 'mission'
+            {(action.options.index === 'mission' || action.options.cardIndex === 'mission')
               ? (
                 <Card landscape width='154px' label='Missionskort' />
               )
