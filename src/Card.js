@@ -30,7 +30,6 @@ const Card = styled.div`
   opacity: ${props => props.selected ? '0.5' : '1'};
   position: relative;
 
-
   &::after {
     content: "${props => props.label}";
     position: absolute;
@@ -39,6 +38,7 @@ const Card = styled.div`
     transform: translate(-50%, -50%);
     max-width: 90%;
     color: black;
+    font-size: 16px;
   }
 `
 

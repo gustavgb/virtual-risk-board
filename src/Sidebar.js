@@ -383,6 +383,11 @@ class SidebarContainer extends Component {
           <Card
             label={mission}
             landscape
+            onMouseDown={() => this.onMoveCard('mission', 0)}
+            selected={
+              (action.type === 'MOVE_CARD' && action.options.type === 'mission') ||
+              myDisplayedCards.find(card => card.cardType === 'mission')
+            }
           />
         </Details>
         <Details>

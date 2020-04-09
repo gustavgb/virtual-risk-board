@@ -79,8 +79,14 @@ class EventLog extends Component {
       case 'TAKE_CARD':
         return `${options.user} har taget et nyt kort`
       case 'DISPLAY_CARD':
+        if (options.type === 'mission') {
+          return `${options.user} viser nu sit missionskort`
+        }
         return `${options.user} viser nu et kort af typen ${cardTypes[options.type]}`
       case 'HIDE_CARD':
+        if (options.type === 'mission') {
+          return `${options.user} har skjult nu sit missionskort`
+        }
         return `${options.user} har skjult sit kort af typen ${cardTypes[options.type]}`
       case 'DISCARD_CARDS':
         return `${options.user} har smidt disse kort: ${options.cards.map(a => cardTypes[a])}`

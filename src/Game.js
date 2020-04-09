@@ -160,7 +160,13 @@ class GameContainer extends Component {
             x={mouseX}
             y={mouseY}
           >
-            <Card type={action.options.type} width='100px' />
+            {action.options.type === 'mission'
+              ? (
+                <Card landscape width='154px' label='Missionskort' />
+              )
+              : (
+                <Card type={action.options.type} width='100px' />
+              )}
           </ActionContainer>
         )
       case 'TAKE_CARD':

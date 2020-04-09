@@ -52,7 +52,7 @@ const flyIn = keyframes`
 `
 
 const CardWrapper = styled.div`
-  width: 6vw;
+  width: ${props => props.width};
   animation: ${flyIn} 1s ease-out;
   margin-left: 16px;
 
@@ -165,9 +165,15 @@ class DisplayedCards extends Component {
           </Header>
           <CardContainer>
             {displayedCards.list.map((card, index) => (
-              <CardWrapper key={card.cardIndex} selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}>
+              <CardWrapper
+                key={`${card.cardType}${card.cardIndex}`}
+                selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
+                width={card.cardType === 'mission' ? '9.24vw' : '6vw'}
+              >
                 <Card
                   type={card.cardType}
+                  landscape={card.cardType === 'mission'}
+                  label={card.cardType === 'mission' ? 'Missionskort' : ''}
                   onMouseDown={() => this.onTakeCard(card, index)}
                 />
               </CardWrapper>
