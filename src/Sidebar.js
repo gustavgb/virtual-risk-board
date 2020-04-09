@@ -86,9 +86,6 @@ const Hand = styled.div`
 
 const ListItem = styled.li`
   color: ${props => props.done ? '#0f0' : 'white'};
-  display: flex;
-  flex-direction: row;
-  align-items: center;
 `
 
 const BoardDropZone = styled.div`
@@ -142,6 +139,7 @@ const PresenceStatus = styled.span`
   border-radius: 50%;
   background-color: ${props => props.online ? '#0f0' : '#f00'};
   margin-left: 0.5rem;
+  display: inline-block;
 `
 
 class SidebarContainer extends Component {
@@ -328,6 +326,8 @@ class SidebarContainer extends Component {
     const myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
     const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
 
+
+
     return (
       <Sidebar>
         <BoardDropZone
@@ -423,12 +423,21 @@ class SidebarContainer extends Component {
         <Details open>
           <summary><h3>Medspillere</h3></summary>
           <ul>
-            {users.map(user => (
-              <ListItem key={user.id}>
-                {user.name}
-                <PresenceStatus online={status[user.id]} />
-              </ListItem>
-            ))}
+            {users.map(user => {
+              const colorId = fromString(gameColors[user.id])
+              const armies = countries.reduce((sum, country) => sum + (country.armies[colorId] || { amount: 0 }).amount, 0)
+              const territories = countries.filter(country => !!country.armies[colorId] && country.armiesList.length === 1).length
+              return (
+                <ListItem key={user.id}>
+                  {user.name}
+                  <PresenceStatus online={status[user.id]} />
+                  <ul>
+                    <li>Armérer: {armies}</li>
+                    <li>Territorier: {territories}</li>
+                  </ul>
+                </ListItem>
+              )
+            })}
           </ul>
         </Details>
       </Sidebar>
