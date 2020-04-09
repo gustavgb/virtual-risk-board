@@ -8,6 +8,9 @@ import DisplayedCards from 'DisplayedCards'
 import EventLog from 'EventLog'
 import LandingPrompt from 'Landing'
 import Card from 'Card'
+import { checkCode } from 'api/browse'
+import CenteredMessage from 'CenteredMessage'
+import { Link } from 'react-router-dom'
 
 const Root = styled.div`
   width: 100vw;
@@ -80,7 +83,8 @@ class GameContainer extends Component {
       users: null,
       mouseX: 0,
       mouseY: 0,
-      action: {}
+      action: {},
+      invalidCode: false
     }
 
     this.boardEl = React.createRef()
@@ -95,7 +99,8 @@ class GameContainer extends Component {
 
     console.log(joinedGame)
 
-    joinGame(user, joinedGame)
+    checkCode(joinedGame)
+      .then(() => joinGame(user, joinedGame))
       .then(() => {
         this.streamState = streamState(user, joinedGame).subscribe(state => {
           this.setState(state)
@@ -107,6 +112,9 @@ class GameContainer extends Component {
           })
         })
       })
+      .catch(() => this.setState({
+        invalidCode: true
+      }))
 
     window.addEventListener('mousemove', this._onMouseMove)
   }
@@ -199,7 +207,8 @@ class GameContainer extends Component {
       action,
       users,
       game,
-      hand
+      hand,
+      invalidCode
     } = this.state
     const {
       user: {
@@ -207,8 +216,20 @@ class GameContainer extends Component {
       }
     } = this.props
 
+    if (invalidCode) {
+      return (
+        <CenteredMessage>
+          <p>Dette spil findes desværre ikke...</p>
+          <Link to='/'>
+            &larr;
+            Tilbage til forsiden
+          </Link>
+        </CenteredMessage>
+      )
+    }
+
     if (!game || !users || !hand) {
-      return 'Loading...'
+      return <CenteredMessage>Loading...</CenteredMessage>
     }
 
     const ownUser = {

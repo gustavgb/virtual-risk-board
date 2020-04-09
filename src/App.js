@@ -8,6 +8,7 @@ import Browse from 'Browse'
 import GameContainer from 'Game'
 import { Route, Switch } from 'react-router-dom'
 import { connect } from 'react-redux'
+import CenteredMessage from 'CenteredMessage'
 
 const Root = styled.div`
 `
@@ -41,7 +42,7 @@ class App extends Component {
 
     return (
       <Root>
-        {!loaded && 'Loading...'}
+        {!loaded && <CenteredMessage>Loading...</CenteredMessage>}
         {loaded && !user && (
           <Login />
         )}

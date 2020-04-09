@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { logout, changeUsername } from 'api/user'
 import { withRouter } from 'react-router-dom'
 import logo from 'images/card_back.png'
+import CenteredMessage from 'CenteredMessage'
 
 const Root = styled.div`
   width: 50rem;
@@ -152,7 +153,7 @@ class Browse extends Component {
     } = this.state
 
     if (!games || !user) {
-      return 'Loading...'
+      return <CenteredMessage>Loading...</CenteredMessage>
     }
 
     return (
