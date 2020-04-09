@@ -172,7 +172,7 @@ class DisplayedCards extends Component {
               <CardWrapper
                 key={card.cardIndex}
                 selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
-                width={card.cardIndex === 'mission' ? '9.24vw' : '6vw'}
+                width={card.cardIndex === 'mission' ? '14.22vw' : '6vw'}
               >
                 <Card
                   type={card.cardType}

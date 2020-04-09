@@ -21,6 +21,7 @@ const GlobalStyle = createGlobalStyle`
     background-size: 100vw 100vh;
     background-position: center;
     background-attachment: fixed;
+    overflow: hidden;
 
     & * {
       box-sizing: border-box;
