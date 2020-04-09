@@ -322,7 +322,7 @@ class SidebarContainer extends Component {
     const selectedColor = colors.find(c => c.hex === gameColors[uid])
     const filteredColors = colors.filter(c => !Object.keys(gameColors).find(key => gameColors[key] === c.hex && gameColors[uid] !== c.hex))
     const myInitialCountries = initialCountries[uid]
-    const myColorId = fromString(selectedColor.hex)
+    const myColorId = selectedColor.hex && fromString(selectedColor.hex)
     const myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
     const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
 
@@ -422,19 +422,22 @@ class SidebarContainer extends Component {
           <summary><h3>Medspillere</h3></summary>
           <ul>
             {users.map(user => {
-              const colorId = fromString(gameColors[user.id])
-              const armies = countries.reduce((sum, country) => sum + (country.armies[colorId] || { amount: 0 }).amount, 0)
-              const territories = countries.filter(country => !!country.armies[colorId] && country.armiesList.length === 1).length
-              return (
-                <ListItem key={user.id}>
-                  {user.name}
-                  <PresenceStatus online={status[user.id]} />
-                  <ul>
-                    <li>Armérer: {armies}</li>
-                    <li>Territorier: {territories}</li>
-                  </ul>
-                </ListItem>
-              )
+              if (gameColors[user.id]) {
+                const colorId = fromString(gameColors[user.id])
+                const armies = countries.reduce((sum, country) => sum + (country.armies[colorId] || { amount: 0 }).amount, 0)
+                const territories = countries.filter(country => !!country.armies[colorId] && country.armiesList.length === 1).length
+                return (
+                  <ListItem key={user.id}>
+                    {user.name}
+                    <PresenceStatus online={status[user.id]} />
+                    <ul>
+                      <li>Armérer: {armies}</li>
+                      <li>Territorier: {territories}</li>
+                    </ul>
+                  </ListItem>
+                )
+              }
+              return null
             })}
           </ul>
         </Details>
