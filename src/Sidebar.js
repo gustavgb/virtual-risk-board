@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
 import armyImg from 'images/army.png'
-import { setColors, takeCard, displayCard, pushToLog } from 'api/game'
+import { setColors, takeCard, displayCard, pushToLog, throwRandomCard } from 'api/game'
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
 import { fromString } from 'utils/makeId'
@@ -124,6 +124,15 @@ const CancelDropZone = styled.div`
   pointer-events: ${props => props.active ? 'all' : 'none'};
 `
 
+const Button = styled.button`
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  margin: 10px 0;
+  display: block;
+  cursor: pointer;
+`
+
 class SidebarContainer extends Component {
   shouldComponentUpdate (nextProps) {
     return (
@@ -216,6 +225,33 @@ class SidebarContainer extends Component {
     }
   }
 
+  onThrowRandomCard () {
+    const {
+      hand: {
+        cards
+      },
+      game: {
+        id
+      },
+      user: {
+        uid,
+        name
+      }
+    } = this.props
+
+    if (cards.length > 0) {
+      if (window.confirm('Er du sikker på at du vil smide et tilfældigt kort? Der er ingen vej tilbage!')) {
+        throwRandomCard(id, uid)
+        this.pushToLog(
+          'THROW_CARD',
+          {
+            user: name
+          }
+        )
+      }
+    }
+  }
+
   onDiscardAction () {
     this.props.onChangeAction({})
   }
@@ -264,7 +300,8 @@ class SidebarContainer extends Component {
         displayedCards
       },
       hand: {
-        cards
+        cards,
+        mission
       },
       users,
       action
@@ -335,11 +372,17 @@ class SidebarContainer extends Component {
               />
             ))}
           </Hand>
+          {cards.length > 0 && (
+            <Button onClick={this.onThrowRandomCard.bind(this)}>
+              Smid et tilfældigt kort
+            </Button>
+          )}
         </Zone>
         <Details open>
           <summary><h3>Mission</h3></summary>
           <Card
-            label='Missionskort'
+            label={mission}
+            landscape
           />
         </Details>
         <Details>

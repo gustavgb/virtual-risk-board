@@ -5,8 +5,7 @@ import { fromString } from 'utils/makeId'
 import { combineLatest } from 'rxjs'
 import { countries } from 'constants/countries'
 import store from 'store'
-import { distribute, giveRandom } from 'utils/initialization'
-import { missions } from 'constants/missions'
+import { distribute, removeRandom } from 'utils/cards'
 
 const mapGame = (game) => {
   const timeOffset = store.getState().timeOffset
@@ -44,26 +43,19 @@ const mapHand = (hand) => ({
   player: null,
   game: null,
   id: null,
+  mission: '',
   ...hand
 })
 
 export const joinGame = (user, gameId) => {
-  return Promise.all([
-    getServerTime().then(({ data: serverTime }) => store.dispatch({
+  let choosenMission = null
+
+  return getServerTime()
+    .then(({ data: serverTime }) => store.dispatch({
       type: 'SET_TIME_OFFSET',
       offset: serverTime - Date.now()
-    })),
-    database.ref(`hands/${gameId}${user.uid}`).transaction(hand => {
-      if (!hand) {
-        return {
-          cards: [],
-          player: user.uid,
-          game: gameId
-        }
-      }
-      return hand
-    }),
-    database.ref(`games/${gameId}`).transaction(game => {
+    }))
+    .then(() => database.ref(`games/${gameId}`).transaction(game => {
       if (game) {
         let changedMembers = false
         if (!game.members) {
@@ -74,11 +66,16 @@ export const joinGame = (user, gameId) => {
         if (!game.members.find(member => member === user.uid)) {
           game.members.push(user.uid)
           changedMembers = true
+
+          if (!game.missions) {
+            game.missions = []
+          }
+
+          choosenMission = game.missions.pop()
         }
 
         if (changedMembers) {
           game.initialCountries = distribute(game.members, countries.map(country => country.name))
-          game.missions = giveRandom(game.members, missions)
         }
 
         if (!game.initialCountries) {
@@ -91,8 +88,18 @@ export const joinGame = (user, gameId) => {
       }
 
       return game
-    })
-  ])
+    }))
+    .then(() => database.ref(`hands/${gameId}${user.uid}`).transaction(hand => {
+      if (!hand) {
+        return {
+          cards: [],
+          player: user.uid,
+          game: gameId,
+          mission: choosenMission
+        }
+      }
+      return hand
+    }))
 }
 
 export const streamState = (user, gameId) => {
@@ -321,6 +328,20 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
 
       return game
     }))
+}
+
+export const throwRandomCard = (gameId, userId) => {
+  return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
+    if (hand) {
+      if (!hand.cards) {
+        hand.cards = []
+      }
+
+      hand.cards = removeRandom(hand.cards)
+    }
+
+    return hand
+  })
 }
 
 export const pushToLog = (gameId, userId, code, content) => {

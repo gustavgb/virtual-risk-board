@@ -1,5 +1,8 @@
-function shuffle (array) {
-  var currentIndex = array.length; var temporaryValue; var randomIndex
+export const shuffle = (basis) => {
+  const array = [...basis]
+  let currentIndex = array.length
+  let temporaryValue
+  let randomIndex
 
   // While there remain elements to shuffle...
   while (currentIndex !== 0) {
@@ -37,4 +40,11 @@ export const giveRandom = (users, items) => {
     acc[user] = countriesShuffled.pop()
     return acc
   }, {})
+}
+
+export const removeRandom = (array) => {
+  const r = Math.floor(Math.random() * array.length)
+  const result = [...array]
+  result.splice(r, 1)
+  return result
 }
