@@ -154,6 +154,8 @@ class DisplayedCards extends Component {
     const { displayedCards, users, user: { uid }, action } = this.props
 
     const user = users.find(u => u.id === displayedCards.userId)
+    const isOwnCards = uid === displayedCards.userId
+    const hasMissionCard = Boolean(displayedCards.list.find(c => c.cardIndex === 'mission'))
 
     return (
       <>
@@ -161,7 +163,7 @@ class DisplayedCards extends Component {
         <Root onMouseUp={this.onCancelCard.bind(this)}>
           <Header>
             <h2>{uid === displayedCards.userId ? 'Du viser dine kort' : `${user.name} viser sine kort`}</h2>
-            {uid === displayedCards.userId && (
+            {isOwnCards && !hasMissionCard && (
               <DiscardButton onClick={this.onDiscardCards.bind(this)}>Smid disse kort</DiscardButton>
             )}
           </Header>
