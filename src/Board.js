@@ -198,7 +198,7 @@ class BoardContainer extends Component {
       }
     } = this.props
 
-    const isSame = shouldAdd && action.type === 'MOVE_ARMY' && action.options.countryName === countryName
+    const isSame = shouldAdd && action.type === 'MOVE_ARMY' && action.options.countryName === countryName && action.options.armyId === army.id
 
     if (action.type === 'PLACE_ARMY' || (action.type === 'MOVE_ARMY' && !isSame)) {
       placeArmy(id, uid, countryName, action.options.color, action.options.amount)
