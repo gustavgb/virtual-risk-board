@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { countriesDir } from 'constants/countries'
 import cardBackImg from 'images/card_back.png'
+import { colors } from 'constants/colors'
 
 const Root = styled.div`
   pointer-events: none;
@@ -172,14 +173,17 @@ class EventLog extends Component {
     switch (code) {
       case 'PLACE_ARMY':
         if (options.origin !== options.destination) {
+          const color = (colors.find(color => color.hex === options.color) || {})
           if (options.origin) {
-            return `${options.user} har flyttet ${options.amount} armér${options.amount > 1 ? 'er' : ''} fra ${options.origin} til ${options.destination}`
+            return `${options.user} har flyttet ${options.amount} ${options.amount > 1 ? color.pluralName.toLowerCase() : color.name.toLowerCase()} armér${options.amount > 1 ? 'er' : ''} fra ${options.origin} til ${options.destination}`
           }
-          return `${options.user} har placeret ${options.amount} armér${options.amount > 1 ? 'er' : ''} i ${options.destination}`
+          return `${options.user} har placeret ${options.amount} ${options.amount > 1 ? color.pluralName.toLowerCase() : color.name.toLowerCase()} armér${options.amount > 1 ? 'er' : ''} i ${options.destination}`
         }
         return ''
-      case 'DISCARD_ARMY':
-        return `${options.user} har fjernet ${options.amount} armér${options.amount > 1 ? 'er' : ''} fra ${options.country}`
+      case 'DISCARD_ARMY': {
+        const color = (colors.find(color => color.hex === options.color) || {})
+        return `${options.user} har fjernet ${options.amount} ${options.amount > 1 ? color.pluralName.toLowerCase() : color.name.toLowerCase()} armér${options.amount > 1 ? 'er' : ''} fra ${options.country}`
+      }
       case 'CHANGE_COLOR':
         return `${options.user} har skiftet farve`
       case 'TAKE_CARD':

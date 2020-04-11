@@ -1,34 +1,42 @@
 export const colors = [
   {
     hex: '#26589a',
-    name: 'Blå'
+    name: 'Blå',
+    pluralName: 'Blå'
   },
   {
     hex: '#44904e',
-    name: 'Grøn'
+    name: 'Grøn',
+    pluralName: 'Grønne'
   },
   {
     hex: '#b82f2a',
-    name: 'Rød'
+    name: 'Rød',
+    pluralName: 'Røde'
   },
   {
     hex: '#fee75a',
-    name: 'Gul'
+    name: 'Gul',
+    pluralName: 'Gule'
   },
   {
     hex: '#000000',
-    name: 'Sort'
+    name: 'Sort',
+    pluralName: 'Sorte'
   },
   {
     hex: '#ffffff',
-    name: 'Hvid'
+    name: 'Hvid',
+    pluralName: 'Hvide'
   },
   {
     hex: '#8b4513',
-    name: 'Brun'
+    name: 'Brun',
+    pluralName: 'Brune'
   },
   {
     hex: '#ff6347',
-    name: 'Orange'
+    name: 'Orange',
+    pluralName: 'Orange'
   }
 ]

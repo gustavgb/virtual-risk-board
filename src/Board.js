@@ -137,7 +137,8 @@ class BoardContainer extends Component {
             user: name,
             amount: action.options.amount,
             origin: action.options.countryName || null,
-            destination: countryName
+            destination: countryName,
+            color: action.options.color
           }
         )
       }
@@ -177,7 +178,8 @@ class BoardContainer extends Component {
         {
           user: name,
           amount: action.options.amount,
-          country: action.options.countryName
+          country: action.options.countryName,
+          color: action.options.color
         }
       )
     }
