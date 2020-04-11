@@ -2,20 +2,23 @@ import React from 'react'
 import styled from 'styled-components'
 import { colors } from 'constants/colors'
 import { setColors, startGame } from 'api/game'
+import { saveMission, deleteMission } from 'api/landing'
 import Username from './Components/Username'
+import Mission from './Components/Mission'
 
 const Modal = styled.div`
   width: 60vw;
   margin: 3vh auto;
   background-color: #808080;
-  border: 1px solid: black;
   padding: 2vh;
   color: white;
+  overflow-y: auto;
+  height: 90vh;
 `
 
 const Colors = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   grid-gap: 10px;
 `
 
@@ -52,7 +55,8 @@ const LandingPrompt = ({
   game: {
     id,
     colors: gameColors,
-    creator
+    creator,
+    missions
   },
   user: {
     uid
@@ -63,6 +67,7 @@ const LandingPrompt = ({
   const selectedColor = colors.find(c => gameColors[uid] === c.hex) || {}
 
   const isReady = users.filter(u => !gameColors[u.id]).length === 0
+  const isCreator = creator === uid
 
   return (
     <Modal>
@@ -91,10 +96,21 @@ const LandingPrompt = ({
         </>
       )}
 
-      {creator === uid && (
+      <h2>Missioner</h2>
+      {missions.map((mission, index) => (
+        <Mission
+          key={index}
+          mission={mission}
+          canEdit={isCreator}
+          onSave={(text) => saveMission(id, index, text)}
+          onDelete={() => deleteMission(id, index)}
+        />
+      ))}
+
+      {isCreator && (
         <Button disabled={!isReady} onClick={() => startGame(id)}>Start spil</Button>
       )}
-      {creator !== uid && (
+      {!isCreator && (
         <p><i>Vent på at ejeren af spillet trykker Start</i></p>
       )}
     </Modal>
