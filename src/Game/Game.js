@@ -2,12 +2,12 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
 import { streamState, joinGame, connectToPresence } from 'api/game'
-import SidebarContainer from 'Game/Sidebar'
+import Tools from 'Game/Tools'
 import BoardContainer from 'Game/Board'
 import DisplayedCards from 'Game/DisplayedCards'
 import EventLog from 'Game/EventLog'
 import LandingPrompt from 'Game/Landing'
-import Card from 'Game/Components/Card'
+import Card, { CardLabel } from 'Game/Components/Card'
 import { checkCode } from 'api/browse'
 import CenteredMessage from 'Components/CenteredMessage'
 import { Link } from 'react-router-dom'
@@ -15,18 +15,18 @@ import { Link } from 'react-router-dom'
 const Root = styled.div`
   width: 100vw;
   height: 100vh;
-
-  &::after {
-    content: "";
-    clear: both;
-    display: table;
-  }
+  display: grid;
+  grid-template-areas:
+    "toolbar toolbar"
+    "sidebar board";
+  grid-template-rows: 6rem 1fr;
+  grid-template-columns: 25vw 1fr;
 `
 
 const Content = styled.div`
-  float: left;
+  grid-area: board;
   position: relative;
-  width: calc(100% - 20vw);
+  width: 100%;
   height: 100%;
   overflow: hidden;
 `
@@ -211,7 +211,9 @@ class GameContainer extends Component {
           >
             {(action.options.index === 'mission' || action.options.cardIndex === 'mission')
               ? (
-                <Card landscape width='154px' label='Missionskort' />
+                <Card landscape width='154px'>
+                  <CardLabel>Missionskort</CardLabel>
+                </Card>
               )
               : (
                 <Card type={action.options.type} width='100px' />
@@ -298,7 +300,7 @@ class GameContainer extends Component {
         {game.displayedCards.list.length > 0 && (
           <DisplayedCards displayedCards={game.displayedCards} {...props} />
         )}
-        <SidebarContainer {...props} />
+        <Tools {...props} />
         <Content ref={this.contentRef}>
           <BoardContainer {...props} />
           <EventLog events={game.events} {...props} />

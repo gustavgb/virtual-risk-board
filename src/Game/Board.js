@@ -84,7 +84,7 @@ const Trash = styled.div`
   height: 10vw;
   position: absolute;
   bottom: ${props => props.active ? '20px' : '-10vw'};
-  left: 0;
+  left: 3rem;
   z-index: 100;
   transition: all 0.2s ease-out;
   background-color: rgba(100, 100, 100, 0.7);

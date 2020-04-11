@@ -19,26 +19,31 @@ const getCardBg = (card) => {
   }
 }
 
+export const CardLabel = styled.div`
+  content: "${props => props.label}";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 90%;
+  color: black;
+  font-size: 16px;
+
+`
+
 const Card = styled.div`
   background-image: url(${props => getCardBg(props.type)}), url(${props => props.landscape ? cardLandscape : card});
   background-repeat: no-repeat, no-repeat;
   background-size: contain, 100% 100%;
   background-position: center, center;
   width: ${props => props.width || '100%'};
-  height: 0;
-  padding-bottom: ${props => props.landscape ? '64.8333333' : '154.24164524421593'}%;
   opacity: ${props => props.selected ? '0.5' : '1'};
   position: relative;
 
   &::after {
-    content: "${props => props.label}";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-width: 90%;
-    color: black;
-    font-size: 16px;
+    content: "";
+    display: block;
+    padding-bottom: ${props => props.landscape ? '64.8333333' : '154.24164524421593'}%;
   }
 `
 

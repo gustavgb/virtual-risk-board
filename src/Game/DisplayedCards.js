@@ -1,16 +1,12 @@
 import React, { Component } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { removeDisplayedCard, discardDisplayedCards, pushToLog } from 'api/game'
-import Card from 'Game/Components/Card'
+import Card, { CardLabel } from 'Game/Components/Card'
 
 const Root = styled.div`
-  position: absolute;
+  grid-area: board;
   z-index: 100;
   background-color: rgba(100, 100, 100, 0.7);
-  right: 0;
-  bottom: 0;
-  top: 0;
-  left: 20vw;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr;
@@ -22,12 +18,9 @@ const Root = styled.div`
 `
 
 const DiscardZone = styled.div`
-  position: absolute;
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
   z-index: 100;
-  width: 20vw;
-  bottom: 0;
-  top: 0;
-  left: 0;
   color: white;
   font-size: 25px;
   user-select: none;
@@ -177,9 +170,10 @@ class DisplayedCards extends Component {
                 <Card
                   type={card.cardType}
                   landscape={card.cardIndex === 'mission'}
-                  label={card.cardIndex === 'mission' ? card.cardType : ''}
                   onMouseDown={() => this.onTakeCard(card, index)}
-                />
+                >
+                  <CardLabel>{card.cardIndex === 'mission' ? card.cardType : ''}</CardLabel>
+                </Card>
               </CardWrapper>
             ))}
           </CardContainer>
