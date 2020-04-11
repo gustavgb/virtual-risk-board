@@ -42,8 +42,9 @@ export const giveRandom = (users, items) => {
   }, {})
 }
 
-export const removeRandom = (array) => {
+export const removeRandom = (array, out = {}) => {
   const r = Math.floor(Math.random() * array.length)
+  out.index = r
   const result = [...array]
   result.splice(r, 1)
   return result

@@ -329,10 +329,12 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
           game.displayedCards.list = []
         }
 
-        game.displayedCards.list = game.displayedCards.list.filter(card => !displayedCards.find(c => c.cardIndex === card.cardIndex))
+        if (game.displayedCards.userId === userId) {
+          game.displayedCards.list = game.displayedCards.list.filter(card => !displayedCards.find(c => c.cardIndex === card.cardIndex))
 
-        if (game.displayedCards.list.length === 0) {
-          game.displayedCards = null
+          if (game.displayedCards.list.length === 0) {
+            game.displayedCards = null
+          }
         }
       }
 
@@ -341,17 +343,31 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
 }
 
 export const throwRandomCard = (gameId, userId) => {
+  const out = {}
   return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
     if (hand) {
       if (!hand.cards) {
         hand.cards = []
       }
 
-      hand.cards = removeRandom(hand.cards)
+      hand.cards = removeRandom(hand.cards, out)
     }
 
     return hand
   })
+    .then(database.ref(`games/${gameId}`).transaction(game => {
+      if (game && game.displayedCards) {
+        if (
+          game.displayedCards.userId === userId &&
+          game.displayedCards.list &&
+          game.displayedCards.list.length > 0
+        ) {
+          game.displayedCards.list = game.displayedCards.list.filter(card => card.cardIndex !== out.index)
+        }
+      }
+
+      return game
+    }))
 }
 
 export const pushToLog = (gameId, userId, code, content) => {
