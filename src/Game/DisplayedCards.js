@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { removeDisplayedCard, discardDisplayedCards, pushToLog } from 'api/game'
-import Card from 'Card'
+import Card from 'Game/Components/Card'
 
 const Root = styled.div`
   position: absolute;

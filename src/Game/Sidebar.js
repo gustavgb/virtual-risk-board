@@ -6,7 +6,7 @@ import { setColors, takeCard, displayCard, pushToLog, throwRandomCard } from 'ap
 import { colors } from 'constants/colors'
 import { Link } from 'react-router-dom'
 import { fromString } from 'utils/makeId'
-import Card from 'Card'
+import Card from 'Game/Components/Card'
 
 const Sidebar = styled.div`
   width: 20vw;

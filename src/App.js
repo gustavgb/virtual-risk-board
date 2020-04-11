@@ -5,13 +5,12 @@ import styled from 'styled-components'
 import { auth } from 'api'
 import Login from 'Login'
 import Browse from 'Browse'
-import GameContainer from 'Game'
+import GameContainer from 'Game/Game'
 import { Route, Switch } from 'react-router-dom'
 import { connect } from 'react-redux'
-import CenteredMessage from 'CenteredMessage'
+import CenteredMessage from 'Components/CenteredMessage'
 
-const Root = styled.div`
-`
+const Root = styled.div``
 
 class App extends Component {
   constructor (props) {

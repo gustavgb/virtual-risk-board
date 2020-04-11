@@ -2,14 +2,14 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
 import { streamState, joinGame, connectToPresence } from 'api/game'
-import SidebarContainer from 'Sidebar'
-import BoardContainer from 'Board'
-import DisplayedCards from 'DisplayedCards'
-import EventLog from 'EventLog'
-import LandingPrompt from 'Landing'
-import Card from 'Card'
+import SidebarContainer from 'Game/Sidebar'
+import BoardContainer from 'Game/Board'
+import DisplayedCards from 'Game/DisplayedCards'
+import EventLog from 'Game/EventLog'
+import LandingPrompt from 'Game/Landing'
+import Card from 'Game/Components/Card'
 import { checkCode } from 'api/browse'
-import CenteredMessage from 'CenteredMessage'
+import CenteredMessage from 'Components/CenteredMessage'
 import { Link } from 'react-router-dom'
 
 const Root = styled.div`
@@ -89,7 +89,7 @@ class GameContainer extends Component {
       invalidCode: false
     }
 
-    this.boardEl = React.createRef()
+    this.contentRef = React.createRef()
 
     this.streamState = null
 
@@ -134,26 +134,38 @@ class GameContainer extends Component {
     window.removeEventListener('resize', this._onResize)
   }
 
-  onResize () {
-    const innerWidth = window.innerWidth * 0.8
-    const innerHeight = window.innerHeight
-
-    const aspect = 750 / 519
-
-    let width, height
-
-    if (innerWidth > innerHeight * aspect) {
-      height = innerHeight
-      width = innerHeight * aspect
-    } else {
-      width = innerWidth
-      height = innerWidth / aspect
+  componentDidUpdate (prevProps, prevState) {
+    if (
+      (!prevState.game || !prevState.hand || !prevState.users || !prevState.game.colors[prevState.user.uid]) &&
+      (this.state.game && this.state.hand && this.state.users && this.state.game.colors[this.state.user.uid])
+    ) {
+      this.onResize()
     }
+  }
 
-    this.setState({
-      width,
-      height
-    })
+  onResize () {
+    if (this.contentRef.current) {
+      const rect = this.contentRef.current.getBoundingClientRect()
+      const innerWidth = rect.width
+      const innerHeight = rect.height
+
+      const aspect = 750 / 519
+
+      let width, height
+
+      if (innerWidth > innerHeight * aspect) {
+        height = innerHeight
+        width = innerHeight * aspect
+      } else {
+        width = innerWidth
+        height = innerWidth / aspect
+      }
+
+      this.setState({
+        width,
+        height
+      })
+    }
   }
 
   onMouseMove (e) {
@@ -239,13 +251,9 @@ class GameContainer extends Component {
       hand,
       invalidCode,
       width,
-      height
+      height,
+      user
     } = this.state
-    const {
-      user: {
-        uid
-      }
-    } = this.props
 
     if (invalidCode) {
       return (
@@ -263,15 +271,10 @@ class GameContainer extends Component {
       return <CenteredMessage>Loading...</CenteredMessage>
     }
 
-    const ownUser = {
-      ...users.find(user => user.id === uid),
-      uid
-    }
-
-    if (!game.colors[ownUser.uid]) {
+    if (!game.colors[user.uid]) {
       return (
         <LandingPrompt
-          user={ownUser}
+          user={user}
           game={game}
           users={users}
         />
@@ -282,7 +285,7 @@ class GameContainer extends Component {
       onChangeAction: this.onChangeAction.bind(this),
       users,
       game,
-      user: ownUser,
+      user,
       action,
       width,
       height,
@@ -296,7 +299,7 @@ class GameContainer extends Component {
           <DisplayedCards displayedCards={game.displayedCards} {...props} />
         )}
         <SidebarContainer {...props} />
-        <Content>
+        <Content ref={this.contentRef}>
           <BoardContainer {...props} />
           <EventLog events={game.events} {...props} />
         </Content>

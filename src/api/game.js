@@ -103,10 +103,10 @@ export const joinGame = (user, gameId) => {
     }))
 }
 
-export const streamState = (user, gameId) => {
+export const streamState = ({ uid }, gameId) => {
   const gameRef = database.ref(`games/${gameId}`)
   const boardRef = database.ref(`boards/${gameId}`)
-  const handRef = database.ref(`hands/${gameId}${user.uid}`)
+  const handRef = database.ref(`hands/${gameId}${uid}`)
   const eventsRef = database.ref(`events/${gameId}`)
   const membersRef = database.ref(`games/${gameId}/members`)
 
@@ -131,10 +131,14 @@ export const streamState = (user, gameId) => {
         id: gameId,
         timestamp: Date.now()
       }),
+      user: {
+        ...users.find(u => u.id === uid),
+        uid
+      },
       users,
       hand: mapHand({
         ...hand.snapshot.val(),
-        id: gameId + user.uid
+        id: gameId + uid
       })
     }))
   )

@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { logout, changeUsername } from 'api/user'
 import { withRouter } from 'react-router-dom'
 import logo from 'images/card_back.png'
-import CenteredMessage from 'CenteredMessage'
+import CenteredMessage from 'Components/CenteredMessage'
 
 const Root = styled.div`
   width: 50rem;
