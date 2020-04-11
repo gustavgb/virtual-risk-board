@@ -5,7 +5,7 @@ import { fromString } from 'utils/makeId'
 import { combineLatest } from 'rxjs'
 import { countries } from 'constants/countries'
 import store from 'store'
-import { distribute, removeRandom } from 'utils/cards'
+import { distribute, removeRandom, shuffle } from 'utils/cards'
 
 const mapGame = (game) => {
   const timeOffset = store.getState().timeOffset
@@ -62,6 +62,8 @@ export const startGame = (gameId) => {
       if (!game.missions) {
         game.missions = []
       }
+
+      game.missions = shuffle(game.missions)
 
       game.members.forEach(member => {
         memberMissions[member] = game.missions.pop()

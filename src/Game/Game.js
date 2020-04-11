@@ -152,6 +152,9 @@ class GameContainer extends Component {
     if (this.streamState) {
       this.streamState.unsubscribe()
     }
+    if (this.streamHand) {
+      this.streamHand.unsubscribe()
+    }
 
     if (this.connectToPresence) {
       this.connectToPresence()

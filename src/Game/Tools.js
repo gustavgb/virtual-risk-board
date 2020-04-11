@@ -167,9 +167,12 @@ const Toolbar = styled.div`
 
   & * {
     user-select: none;
-    color: white;
     font-size: 1.872rem;
     font-weight: bold;
+  }
+
+  & > * {
+    color: white;
   }
 
   & > * {

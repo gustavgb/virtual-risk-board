@@ -4,7 +4,6 @@ import { map } from 'rxjs/operators'
 import { countries } from 'constants/countries'
 import { generateId } from 'utils/makeId'
 import { missions } from 'constants/missions'
-import { shuffle } from 'utils/cards'
 
 export const streamMyGames = (id) => {
   return list(database.ref('games').orderByChild('creator').equalTo(id))
@@ -45,7 +44,7 @@ export const createGame = (user) => {
     title,
     creator: user.uid,
     colors: {},
-    missions: shuffle(missions)
+    missions
   })
   database.ref(`boards/${id}`).set({
     countries: countries.map(country => ({
