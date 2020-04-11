@@ -18,6 +18,7 @@ const Board = styled.div.attrs(props => ({
   background-position: center;
   background-repeat: no-repeat;
   position: absolute;
+  z-index: ${props => props.popout ? 200 : 0};
 `
 
 const CountryLabel = styled.div`
@@ -52,7 +53,6 @@ const CountryMarker = styled.div.attrs(props => ({
   justify-content: center;
   align-items: center;
   user-select: none;
-  z-index: ${props => props.popout ? 200 : 0};
 
   &:hover > ${CountryLabel} {
     display: block;
@@ -162,7 +162,8 @@ class BoardContainer extends Component {
     }
   }
 
-  onDiscardAction () {
+  onDiscardAction (e) {
+    e.stopPropagation()
     const { action } = this.props
     if (action.type) {
       this.props.onChangeAction({})
@@ -200,7 +201,6 @@ class BoardContainer extends Component {
             y={country.y * height}
             onClick={(e) => this.onClickCountry(e, country.name, army)}
             onContextMenu={(e) => this.onClickCountry(e, country.name, army, true)}
-            popout={pop}
             clickable
             highlight={
               action.type === 'MOVE_ARMY' &&
@@ -220,7 +220,6 @@ class BoardContainer extends Component {
             y={country.y * height}
             onMouseDown={(e) => this.onClickCountry(e, country.name, null)}
             onContextMenu={(e) => this.onClickCountry(e, country.name, null, true)}
-            popout={pop}
             clickable={pop}
             highlight={
               action.type === 'MOVE_ARMY' &&
@@ -245,11 +244,12 @@ class BoardContainer extends Component {
     } = this.props
 
     const joinedCountries = countries.map(country => ({ ...countriesDir[country.name], ...country }))
+    const pop = action.type === 'PLACE_ARMY' || action.type === 'MOVE_ARMY'
 
     return (
       <>
         <Trash active={action.type === 'MOVE_ARMY'} onClick={this.onDiscardArmy.bind(this)} />
-        <Board width={width} height={height}>
+        <Board width={width} height={height} popout={pop} onClick={this.onDiscardAction.bind(this)}>
           {joinedCountries.map(country => this.renderCountry(country))}
         </Board>
       </>
