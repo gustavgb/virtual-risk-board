@@ -428,7 +428,7 @@ class SidebarContainer extends Component {
             Tilbage til forsiden
           </Link>
           <FlexSpacer />
-          <ToolbarButton onClick={() => rollDice(gameId, uid)}>Kast en terning</ToolbarButton>
+          <ToolbarButton onClick={this.onRollDice.bind(this)}>Kast en terning</ToolbarButton>
           {hasHand && (
             <Details inline>
               <summary><h3>Mine begyndelseslande</h3></summary>

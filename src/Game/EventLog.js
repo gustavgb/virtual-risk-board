@@ -202,6 +202,10 @@ class EventLog extends Component {
         return `${options.user} har smidt disse kort: ${options.cards.map(a => cardTypes[a])}`
       case 'THROW_CARD':
         return `${options.user} har smidt et tilfældigt kort`
+      case 'DISCARD_DICE':
+        return `${options.user} har fjernet sine terninger (${options.dice.join(', ')})`
+      case 'ROLL_DICE':
+        return `${options.user} har rullet en terning`
       default:
         return ''
     }

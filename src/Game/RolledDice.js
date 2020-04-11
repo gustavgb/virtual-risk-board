@@ -53,7 +53,7 @@ class RolledDice extends Component {
   }
 
   render () {
-    const { game: { dice, id: gameId }, users, user: { uid } } = this.props
+    const { game: { dice }, users, user: { uid } } = this.props
 
     return (
       Object.keys(dice).map(userId => {
@@ -66,7 +66,7 @@ class RolledDice extends Component {
             <Header>
               <h2>{uid === userId ? 'Du har kastet' : `${user.name} har kastet`} {rolledDice.length} terninger</h2>
               {isOwnDice && (
-                <DiscardButton onClick={() => removeDice(gameId, uid)}>Fjern terningerne</DiscardButton>
+                <DiscardButton onClick={this.onDiscard.bind(this)}>Fjern terningerne</DiscardButton>
               )}
             </Header>
             <DiceContainer>
