@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { colors } from 'constants/colors'
 import { setColors, startGame } from 'api/game'
-import { saveMission, deleteMission } from 'api/landing'
+import { saveMission, deleteMission, addMission } from 'api/landing'
 import Username from './Components/Username'
 import Mission from './Components/Mission'
 
@@ -70,6 +70,8 @@ const LandingPrompt = ({
   const isReady = users.filter(u => !gameColors[u.id]).length === 0 && missions.length > members.length
   const isCreator = creator === uid
 
+  const [addingMission, setAddingMission] = useState(false)
+
   return (
     <Modal>
       <h1>Velkommen til det virtuelle risk bræt!</h1>
@@ -98,6 +100,19 @@ const LandingPrompt = ({
       )}
 
       <h2>Missioner</h2>
+      {isCreator && (
+        <Button onClick={() => setAddingMission(true)}>Ny mission</Button>
+      )}
+
+      {addingMission && (
+        <Mission
+          mission='Ny mission'
+          canEdit={isCreator}
+          onSave={(text) => { addMission(id, text); setAddingMission(false) }}
+          onDelete={() => setAddingMission(false)}
+        />
+      )}
+
       {missions.map((mission, index) => (
         <Mission
           key={index}

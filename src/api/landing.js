@@ -12,6 +12,18 @@ export const saveMission = (gameId, missionIndex, text) => {
   })
 }
 
+export const addMission = (gameId, text) => {
+  return database.ref(`games/${gameId}/missions`).transaction(missions => {
+    if (!missions) {
+      missions = []
+    }
+
+    missions.push(text)
+
+    return missions
+  })
+}
+
 export const deleteMission = (gameId, missionIndex) => {
   return database.ref(`games/${gameId}/missions`).transaction(missions => {
     if (!missions) {
