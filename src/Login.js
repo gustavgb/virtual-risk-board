@@ -4,10 +4,14 @@ import styled from 'styled-components'
 import logo from 'images/card_back.png'
 import { register, login } from 'api/user'
 
-const Root = styled.div`
-  width: 30rem;
+const Root = styled.form`
+  width: 50rem;
   margin: 0 auto;
-  padding-top 10rem;
+  padding: 10rem;
+  margin-top: 5rem;
+  background-color: rgba(100, 100, 100, 0.5);
+  border-radius: 5px;
+  text-align: center;
 `
 
 const Input = styled.input`
@@ -22,6 +26,7 @@ const Button = styled.button`
   padding: 0;
   border: 0;
   margin-top: 3rem;
+  color: white;
 
   &:hover {
     text-decoration: underline;
@@ -37,11 +42,12 @@ const SubmitButton = styled.button.attrs({
 `
 
 const Header = styled.h1`
-
+  color: white;
 `
 
 const Error = styled.p`
-  color: red;
+  background-color: darkred;
+  color: white;
 `
 
 const Logo = styled.img`
@@ -64,12 +70,12 @@ const Login = () => {
 
   const onLogin = useCallback(() => {
     login(email, password)
-      .catch(err => setError(err.code))
+      .catch(err => setError(err.message))
   }, [email, password])
 
   const onRegister = useCallback(() => {
     register(name, email, password)
-      .catch(err => setError(err.code))
+      .catch(err => setError(err.message))
   }, [email, password, name])
 
   const submit = useCallback((e) => {
@@ -86,26 +92,24 @@ const Login = () => {
   }, [onLogin, mode, onRegister])
 
   return (
-    <Root>
-      <form onSubmit={submit}>
-        <Logo src={logo} />
-        <Header>
-          {mode === 'LOGIN' && 'Log ind'}
-          {mode === 'REGISTER' && 'Opret bruger'}
-        </Header>
-        {mode === 'REGISTER' && (
-          <Input placeholder='Navn' value={name} onChange={({ target: { value } }) => setName(value)} />
-        )}
-        <Input placeholder='Email' value={email} onChange={({ target: { value } }) => setEmail(value)} />
-        <Input placeholder='Password' value={password} type='password' onChange={({ target: { value } }) => setPassword(value)} />
-        <SubmitButton>
-          {mode === 'LOGIN' && 'Log ind'}
-          {mode === 'REGISTER' && 'Opret bruger'}
-        </SubmitButton>
-        {mode === 'LOGIN' && <Button onClick={() => setMode('REGISTER')}>Opret bruger i stedet</Button>}
-        {mode === 'REGISTER' && <Button onClick={() => setMode('LOGIN')}>Log ind i stedet</Button>}
-        {!!error && <Error>{error}</Error>}
-      </form>
+    <Root onSubmit={submit}>
+      <Logo src={logo} />
+      <Header>
+        {mode === 'LOGIN' && 'Log ind'}
+        {mode === 'REGISTER' && 'Opret bruger'}
+      </Header>
+      {mode === 'REGISTER' && (
+        <Input placeholder='Navn' value={name} onChange={({ target: { value } }) => setName(value)} />
+      )}
+      <Input placeholder='Email' value={email} onChange={({ target: { value } }) => setEmail(value)} />
+      <Input placeholder='Password' value={password} type='password' onChange={({ target: { value } }) => setPassword(value)} />
+      <SubmitButton>
+        {mode === 'LOGIN' && 'Log ind'}
+        {mode === 'REGISTER' && 'Opret bruger'}
+      </SubmitButton>
+      {mode === 'LOGIN' && <Button onClick={() => setMode('REGISTER')}>Opret bruger i stedet</Button>}
+      {mode === 'REGISTER' && <Button onClick={() => setMode('LOGIN')}>Log ind i stedet</Button>}
+      {!!error && <Error>{error}</Error>}
     </Root>
   )
 }

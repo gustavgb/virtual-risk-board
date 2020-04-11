@@ -21,6 +21,11 @@ auth.onAuthStateChanged(function (user) {
 
 export const register = (name, email, password) => {
   loading = true
+
+  if (!name) {
+    return Promise.reject(new Error('Du skal skrive et brugernavn'))
+  }
+
   return auth.createUserWithEmailAndPassword(email, password)
     .then(credential => {
       const user = credential.user
