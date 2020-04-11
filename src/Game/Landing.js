@@ -56,7 +56,8 @@ const LandingPrompt = ({
     id,
     colors: gameColors,
     creator,
-    missions
+    missions,
+    members
   },
   user: {
     uid
@@ -66,7 +67,7 @@ const LandingPrompt = ({
   const filteredColors = colors.filter(c => !Object.keys(gameColors).find(key => gameColors[key] === c.hex && gameColors[uid] !== c.hex))
   const selectedColor = colors.find(c => gameColors[uid] === c.hex) || {}
 
-  const isReady = users.filter(u => !gameColors[u.id]).length === 0
+  const isReady = users.filter(u => !gameColors[u.id]).length === 0 && missions.length > members.length
   const isCreator = creator === uid
 
   return (

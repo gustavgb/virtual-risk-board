@@ -18,6 +18,7 @@ const mapGame = (game) => {
     id: null,
     initialCountries: [],
     status: {},
+    missions: [],
     dice: {},
     ...game,
     events: (game.events || []).map(event => ({
@@ -63,14 +64,18 @@ export const startGame = (gameId) => {
         game.missions = []
       }
 
-      game.missions = shuffle(game.missions)
+      if (game.missions.length > game.members.length) {
+        game.missions = shuffle(game.missions)
 
-      game.members.forEach(member => {
-        memberMissions[member] = game.missions.pop()
-        members.push(member)
-      })
+        game.members.forEach(member => {
+          memberMissions[member] = game.missions.pop()
+          members.push(member)
+        })
 
-      game.initialCountries = distribute(game.members, countries.map(country => country.name))
+        game.initialCountries = distribute(game.members, countries.map(country => country.name))
+      } else {
+        throw new Error('Not enough missions')
+      }
     }
 
     return game
