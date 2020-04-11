@@ -1,12 +1,17 @@
 import React, { Component } from 'react'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
+import { countriesDir } from 'constants/countries'
+import cardBackImg from 'images/card_back.png'
 
 const Root = styled.div`
+  pointer-events: none;
+`
+
+const StaticMessages = styled.div`
   position: absolute;
   right: 5vh;
   bottom: 5vh;
   z-index: 25;
-  pointer-events: none;
   text-align: right;
 `
 
@@ -18,6 +23,101 @@ const Message = styled.p`
   margin: 1vh 0 0;
   opacity: ${props => props.expired ? 0 : 1};
   transition: opacity 0.5s ease-in;
+`
+
+const BoardEvent = styled.div.attrs(props => ({
+  style: {
+    width: props.width + 'px',
+    height: props.height + 'px',
+    left: `calc(50% - ${props.width / 2}px)`,
+    top: `calc(50% - ${props.height / 2}px)`
+  }
+}))`
+  position: absolute;
+`
+
+const locate = keyframes`
+  0% {
+    width: 30vw;
+    height: 30vw;
+    border-width: 1vw;
+  }
+
+  100% {
+    width: 0;
+    height: 0;
+    border-width: 0;
+  }
+`
+
+const CountryLocator = styled.div`
+  position: absolute;
+  left: ${props => props.x}px;
+  top: ${props => props.y}px;
+  border-radius: 50%;
+  border: 0 solid darkred;
+  animation: ${locate} 1s ease-in;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 500;
+`
+
+const fadeInOut = keyframes`
+  0% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+`
+
+const flyInOut = keyframes`
+  0% {
+    top: -15vw;
+  }
+
+  100% {
+    top: 100vh;
+  }
+`
+
+const TakeCardEvent = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  opacity: 0;
+  background-color: rgba(100, 100, 100, 0.7);
+  animation: ${fadeInOut} 2.5s ease-in-out;
+
+  &::after {
+    content: "";
+    background-image: url(${cardBackImg});
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: block;
+
+    width: 23.1vw;
+    height: 15vw;
+
+    position: absolute;
+    top: -15vw;
+    left: 50%;
+    transform: translateX(-50%);
+
+    animation: ${flyInOut} 2.5s cubic-bezier(.21,.72,.71,.16);
+  }
 `
 
 class ExpireringMessage extends Component {
@@ -32,7 +132,7 @@ class ExpireringMessage extends Component {
   }
 
   componentDidMount () {
-    const timeLeft = this.props.expire - Date.now() - 500
+    const timeLeft = this.props.expire - Date.now()
 
     window.setTimeout(
       () => {
@@ -51,16 +151,19 @@ class ExpireringMessage extends Component {
   }
 
   render () {
-    return (
-      <Message expired={this.state.expired}>{this.props.children}</Message>
-    )
+    return this.props.children({ expired: this.state.expired })
   }
 }
 
 class EventLog extends Component {
   shouldComponentUpdate (nextProps) {
     const now = Date.now()
-    return nextProps.events.filter(event => event.expire > now).length !== this.props.events.filter(event => event.expire > now).length
+    return (
+      nextProps.user.uid !== this.props.user.uid ||
+      nextProps.events.filter(event => event.expire > now).length !== this.props.events.filter(event => event.expire > now).length ||
+      nextProps.width !== this.props.width ||
+      nextProps.height !== this.props.height
+    )
   }
 
   parseEvent ({ code, content: options = {} }) {
@@ -97,6 +200,54 @@ class EventLog extends Component {
     }
   }
 
+  renderAnimatedEvent (event) {
+    const {
+      width,
+      height,
+      user: {
+        uid
+      }
+    } = this.props
+
+    if (
+      event.timestamp + 1000 > Date.now() &&
+      (event.code === 'PLACE_ARMY' || event.code === 'DISCARD_ARMY') &&
+      event.userId !== uid
+    ) {
+      const country = countriesDir[event.content.destination || event.content.country]
+      return (
+        <ExpireringMessage key={event.timestamp} expire={event.timestamp + 1000}>
+          {({ expired }) => !expired
+            ? (
+              <BoardEvent width={width} height={height}>
+                <CountryLocator
+                  x={country.x * width}
+                  y={country.y * height}
+                />
+              </BoardEvent>
+            )
+            : null}
+        </ExpireringMessage>
+      )
+    }
+
+    if (
+      event.timestamp + 2500 > Date.now() &&
+      (event.code === 'TAKE_CARD') &&
+      event.userId !== uid
+    ) {
+      return (
+        <ExpireringMessage key={event.timestamp} expire={event.timestamp + 2500}>
+          {({ expired }) => !expired
+            ? <TakeCardEvent key={event.timestamp} />
+            : null}
+        </ExpireringMessage>
+      )
+    }
+
+    return null
+  }
+
   render () {
     const {
       events
@@ -111,14 +262,19 @@ class EventLog extends Component {
 
     return (
       <Root>
-        {eventsFiltered.map(event => (
-          <ExpireringMessage
-            key={event.timestamp}
-            expire={event.expire}
-          >
-            {this.parseEvent(event)}
-          </ExpireringMessage>
-        ))}
+        <StaticMessages>
+          {eventsFiltered.map(event => (
+            <ExpireringMessage
+              key={event.timestamp}
+              expire={event.expire - 500}
+            >
+              {({ expired }) => (
+                <Message expired={expired}>{this.parseEvent(event)}</Message>
+              )}
+            </ExpireringMessage>
+          ))}
+        </StaticMessages>
+        {events.map(event => this.renderAnimatedEvent(event))}
       </Root>
     )
   }

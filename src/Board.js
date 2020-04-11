@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import styled, { css, keyframes } from 'styled-components'
+import styled, { css } from 'styled-components'
 import boardImg from 'images/board.svg'
 import trashImg from 'images/trash.png'
 import { countriesDir } from 'constants/countries'
@@ -94,65 +94,14 @@ const Trash = styled.div`
   }
 `
 
-const locate = keyframes`
-  0% {
-    width: 30vw;
-    height: 30vw;
-    border-width: 1vw;
-  }
-
-  100% {
-    width: 0;
-    height: 0;
-    border-width: 0;
-  }
-`
-
-const CountryLocator = styled.div`
-  position: absolute;
-  left: ${props => props.x}px;
-  top: ${props => props.y}px;
-  border-radius: 50%;
-  border: 0 solid darkred;
-  animation: ${locate} 1s ease-in;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 500;
-`
-
 class BoardContainer extends Component {
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      width: 0,
-      height: 0
-    }
-
-    this.boardEl = React.createRef()
-
-    this._onResize = this.onResize.bind(this)
-  }
-
-  componentDidMount () {
-    window.addEventListener('resize', this._onResize)
-
-    this.onResize()
-  }
-
-  componentWillUnmount () {
-    window.removeEventListener('resize', this._onResize)
-  }
-
   shouldComponentUpdate (nextProps, nextState) {
-    const now = Date.now()
     return (
       nextProps.action.type !== this.props.action.type ||
       nextProps.user.uid !== this.props.user.uid ||
       nextProps.game.timestamp !== this.props.game.timestamp ||
-      nextState.width !== this.state.width ||
-      nextState.height !== this.state.height ||
-      nextProps.game.events.length !== this.props.game.events.filter(event => event.expire > now).length
+      nextProps.width !== this.props.width ||
+      nextProps.height !== this.props.height
     )
   }
 
@@ -160,28 +109,6 @@ class BoardContainer extends Component {
     const { game: { id }, user: { uid } } = this.props
 
     pushToLog(id, uid, code, content)
-  }
-
-  onResize () {
-    const innerWidth = window.innerWidth * 0.8
-    const innerHeight = window.innerHeight
-
-    const aspect = 750 / 519
-
-    let width, height
-
-    if (innerWidth > innerHeight * aspect) {
-      height = innerHeight
-      width = innerHeight * aspect
-    } else {
-      width = innerWidth
-      height = innerWidth / aspect
-    }
-
-    this.setState({
-      width,
-      height
-    })
   }
 
   onClickCountry (e, countryName, army, shouldAdd = false) {
@@ -255,11 +182,7 @@ class BoardContainer extends Component {
   }
 
   renderCountry (country) {
-    const {
-      width,
-      height
-    } = this.state
-    const { action } = this.props
+    const { action, width, height } = this.props
     const groups = country.armiesList.length - 1
     const pop = action.type === 'PLACE_ARMY' || action.type === 'MOVE_ARMY'
 
@@ -310,18 +233,12 @@ class BoardContainer extends Component {
   render () {
     const {
       game: {
-        countries,
-        events
+        countries
       },
-      user: {
-        uid
-      },
-      action
-    } = this.props
-    const {
+      action,
       width,
       height
-    } = this.state
+    } = this.props
 
     const joinedCountries = countries.map(country => ({ ...countriesDir[country.name], ...country }))
 
@@ -330,23 +247,6 @@ class BoardContainer extends Component {
         <Trash active={action.type === 'MOVE_ARMY'} onClick={this.onDiscardArmy.bind(this)} />
         <Board width={width} height={height}>
           {joinedCountries.map(country => this.renderCountry(country))}
-          {events.map(event => {
-            if (
-              event.timestamp + 1000 > Date.now() &&
-              (event.code === 'PLACE_ARMY' || event.code === 'DISCARD_ARMY') &&
-              event.userId !== uid
-            ) {
-              const country = countriesDir[event.content.destination || event.content.country]
-              return (
-                <CountryLocator
-                  key={event.timestamp}
-                  x={country.x * width}
-                  y={country.y * height}
-                />
-              )
-            }
-            return null
-          })}
         </Board>
       </>
     )

@@ -83,6 +83,8 @@ class GameContainer extends Component {
       users: null,
       mouseX: 0,
       mouseY: 0,
+      width: 0,
+      height: 0,
       action: {},
       invalidCode: false
     }
@@ -92,6 +94,7 @@ class GameContainer extends Component {
     this.streamState = null
 
     this._onMouseMove = this.onMouseMove.bind(this)
+    this._onResize = this.onResize.bind(this)
   }
 
   componentDidMount () {
@@ -113,6 +116,9 @@ class GameContainer extends Component {
       }))
 
     window.addEventListener('mousemove', this._onMouseMove)
+    window.addEventListener('resize', this._onResize)
+
+    this.onResize()
   }
 
   componentWillUnmount () {
@@ -125,6 +131,29 @@ class GameContainer extends Component {
     }
 
     window.removeEventListener('mousemove', this._onMouseMove)
+    window.removeEventListener('resize', this._onResize)
+  }
+
+  onResize () {
+    const innerWidth = window.innerWidth * 0.8
+    const innerHeight = window.innerHeight
+
+    const aspect = 750 / 519
+
+    let width, height
+
+    if (innerWidth > innerHeight * aspect) {
+      height = innerHeight
+      width = innerHeight * aspect
+    } else {
+      width = innerWidth
+      height = innerWidth / aspect
+    }
+
+    this.setState({
+      width,
+      height
+    })
   }
 
   onMouseMove (e) {
@@ -208,7 +237,9 @@ class GameContainer extends Component {
       users,
       game,
       hand,
-      invalidCode
+      invalidCode,
+      width,
+      height
     } = this.state
     const {
       user: {
@@ -247,37 +278,27 @@ class GameContainer extends Component {
       )
     }
 
+    const props = {
+      onChangeAction: this.onChangeAction.bind(this),
+      users,
+      game,
+      user: ownUser,
+      action,
+      width,
+      height,
+      hand
+    }
+
     return (
       <Root>
         <DropZoneBlocker active={action.type === 'MOVE_ARMY'} onContextMenu={e => e.preventDefault()} />
         {game.displayedCards.list.length > 0 && (
-          <DisplayedCards
-            displayedCards={game.displayedCards}
-            onChangeAction={this.onChangeAction.bind(this)}
-            users={users}
-            game={game}
-            user={ownUser}
-            action={action}
-          />
+          <DisplayedCards displayedCards={game.displayedCards} {...props} />
         )}
-        <SidebarContainer
-          action={action}
-          user={ownUser}
-          users={users}
-          hand={hand}
-          game={game}
-          onChangeAction={this.onChangeAction.bind(this)}
-        />
+        <SidebarContainer {...props} />
         <Content>
-          <BoardContainer
-            action={action}
-            user={ownUser}
-            users={users}
-            hand={hand}
-            game={game}
-            onChangeAction={this.onChangeAction.bind(this)}
-          />
-          <EventLog events={game.events} />
+          <BoardContainer {...props} />
+          <EventLog events={game.events} {...props} />
         </Content>
         {this.renderAction()}
       </Root>
