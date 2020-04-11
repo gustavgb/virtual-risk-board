@@ -449,7 +449,8 @@ export const rollDice = (gameId, userId) => {
         game.dice[userId] = []
       }
 
-      game.dice[userId].push(Math.floor(Math.random() * 6) + 1)
+      const n = Math.floor((window.crypto.getRandomValues(new Uint32Array(1)) / 4294967295) * 6) + 1
+      game.dice[userId].push(n)
     }
     return game
   })
