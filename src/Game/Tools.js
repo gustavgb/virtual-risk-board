@@ -362,7 +362,7 @@ class SidebarContainer extends Component {
         countries,
         colors: gameColors,
         displayedCards,
-        status
+        id: gameId
       },
       hand: {
         cards,
@@ -423,7 +423,7 @@ class SidebarContainer extends Component {
                     return (
                       <ListItem key={user.id}>
                         <Username color={gameColors[user.id]}>{user.name}</Username>
-                        <PresenceStatus online={status[user.id]} />
+                        <PresenceStatus online={user.currentGame === gameId} />
                         <ul>
                           <li>Armérer: {armies}</li>
                           <li>Territorier: {territories}</li>

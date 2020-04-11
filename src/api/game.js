@@ -399,7 +399,7 @@ export const pushToLog = (gameId, userId, code, content) => {
 }
 
 export const connectToPresence = (gameId, uid) => {
-  const userStatusRef = database.ref(`games/${gameId}/status/${uid}`)
+  const userStatusRef = database.ref(`users/${uid}/currentGame`)
 
   database.ref('.info/connected').on('value', function (snapshot) {
     // If we're not currently connected, don't do anything.
@@ -411,7 +411,7 @@ export const connectToPresence = (gameId, uid) => {
     // method to add a set which will only trigger once this
     // client has disconnected by closing the app,
     // losing internet, or any other means.
-    userStatusRef.onDisconnect().set(false).then(function () {
+    userStatusRef.onDisconnect().set(null).then(function () {
       // The promise returned from .onDisconnect().set() will
       // resolve as soon as the server acknowledges the onDisconnect()
       // request, NOT once we've actually disconnected:
@@ -419,12 +419,12 @@ export const connectToPresence = (gameId, uid) => {
 
       // We can now safely set ourselves as 'online' knowing that the
       // server will mark us as offline once we lose connection.
-      userStatusRef.set(true)
+      userStatusRef.set(gameId)
     })
   })
 
   return () => {
     userStatusRef.onDisconnect().cancel()
-    userStatusRef.set(false)
+    userStatusRef.set(null)
   }
 }
