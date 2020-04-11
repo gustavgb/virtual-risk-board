@@ -1,37 +1,14 @@
 import React, { Component } from 'react'
 import styled, { keyframes } from 'styled-components'
-import { removeDisplayedCard, discardDisplayedCards, pushToLog } from 'api/game'
+import { discardDisplayedCards, pushToLog } from 'api/game'
 import Card, { CardLabel } from 'Game/Components/Card'
-
-const Root = styled.div`
-  grid-area: board;
-  z-index: 100;
-  background-color: rgba(100, 100, 100, 0.7);
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr;
-  justify-items: center;
-  color: white;
-  font-size: 25px;
-  user-select: none;
-  overflow: hidden;
-`
-
-const DiscardZone = styled.div`
-  grid-column: 1 / 3;
-  grid-row: 1 / 3;
-  z-index: 100;
-  color: white;
-  font-size: 25px;
-  user-select: none;
-  pointer-events: ${props => props.active ? 'all' : 'none'};
-`
 
 const CardContainer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-self: flex-start;
+  flex-wrap: wrap;
+  max-width: 50vw;
 `
 
 const flyIn = keyframes`
@@ -58,7 +35,6 @@ const CardWrapper = styled.div`
 
 const Header = styled.div`
   color: white;
-  align-self: flex-end;
 `
 
 const DiscardButton = styled.button`
@@ -103,32 +79,6 @@ class DisplayedCards extends Component {
     }
   }
 
-  onCancelCard (type, index) {
-    const { action } = this.props
-
-    if (action.type === 'MOVE_DISPLAYED_CARD') {
-      this.props.onChangeAction({})
-    }
-  }
-
-  onReturnCard () {
-    const { action, game: { id }, user: { uid, name } } = this.props
-
-    if (action.type === 'MOVE_DISPLAYED_CARD') {
-      removeDisplayedCard(id, uid, action.options.cardIndex)
-      this.pushToLog(
-        'HIDE_CARD',
-        {
-          user: name,
-          type: action.options.cardIndex === 'mission'
-            ? action.options.cardIndex
-            : action.options.type
-        }
-      )
-      this.props.onChangeAction({})
-    }
-  }
-
   onDiscardCards () {
     const { game: { id }, user: { uid, name }, displayedCards } = this.props
     if (window.confirm('Vil du smide disse kort?')) {
@@ -152,32 +102,29 @@ class DisplayedCards extends Component {
 
     return (
       <>
-        <DiscardZone active={action.type === 'MOVE_DISPLAYED_CARD'} onMouseUp={() => this.onReturnCard()} />
-        <Root onMouseUp={this.onCancelCard.bind(this)}>
-          <Header>
-            <h2>{uid === displayedCards.userId ? 'Du viser dine kort' : `${user.name} viser sine kort`}</h2>
-            {isOwnCards && !hasMissionCard && (
-              <DiscardButton onClick={this.onDiscardCards.bind(this)}>Smid disse kort</DiscardButton>
-            )}
-          </Header>
-          <CardContainer>
-            {displayedCards.list.map((card, index) => (
-              <CardWrapper
-                key={card.cardIndex}
-                selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
-                width={card.cardIndex === 'mission' ? '14.22vw' : '6vw'}
+        <Header>
+          <h2>{uid === displayedCards.userId ? 'Du viser dine kort' : `${user.name} viser sine kort`}</h2>
+          {isOwnCards && !hasMissionCard && (
+            <DiscardButton onClick={this.onDiscardCards.bind(this)}>Smid disse kort</DiscardButton>
+          )}
+        </Header>
+        <CardContainer>
+          {displayedCards.list.map((card, index) => (
+            <CardWrapper
+              key={card.cardIndex}
+              selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
+              width={card.cardIndex === 'mission' ? '14.22vw' : '6vw'}
+            >
+              <Card
+                type={card.cardType}
+                landscape={card.cardIndex === 'mission'}
+                onMouseDown={() => this.onTakeCard(card, index)}
               >
-                <Card
-                  type={card.cardType}
-                  landscape={card.cardIndex === 'mission'}
-                  onMouseDown={() => this.onTakeCard(card, index)}
-                >
-                  <CardLabel>{card.cardIndex === 'mission' ? card.cardType : ''}</CardLabel>
-                </Card>
-              </CardWrapper>
-            ))}
-          </CardContainer>
-        </Root>
+                <CardLabel>{card.cardIndex === 'mission' ? card.cardType : ''}</CardLabel>
+              </Card>
+            </CardWrapper>
+          ))}
+        </CardContainer>
       </>
     )
   }

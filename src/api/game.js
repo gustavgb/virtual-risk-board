@@ -160,21 +160,6 @@ export const streamHand = ({ uid }, gameId) => {
   )
 }
 
-export const getUsers = (gameId) => {
-  return database.ref(`games/${gameId}`).once('value').then(doc => {
-    if (!doc.exists) {
-      throw new Error('Document does not exist!')
-    }
-
-    const game = doc.val()
-    return Promise.all(
-      (game.members || []).map(
-        member => database.ref(`users/${member}`).once('value').then(user => ({ ...user.val(), id: member }))
-      )
-    )
-  })
-}
-
 export const setColors = (gameId, uid, color) => {
   return database.ref(`games/${gameId}`).transaction(game => {
     if (game) {

@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
-import { streamState, joinGame, connectToPresence, streamHand } from 'api/game'
+import { streamState, joinGame, connectToPresence, streamHand, removeDisplayedCard, pushToLog } from 'api/game'
 import Tools from 'Game/Tools'
 import BoardContainer from 'Game/Board'
 import DisplayedCards from 'Game/DisplayedCards'
@@ -67,6 +67,28 @@ const DropZoneBlocker = styled.div`
   left: 0;
   color: white;
   font-size: 25px;
+  user-select: none;
+  pointer-events: ${props => props.active ? 'all' : 'none'};
+`
+const OverlayMessages = styled.div`
+  grid-area: board;
+  z-index: 100;
+  background-color: rgba(100, 100, 100, 0.7);
+  color: white;
+  font-size: 25px;
+  user-select: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10rem;
+`
+const ReturnCardZone = styled.div`
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+  z-index: 100;
+  color: white;
   user-select: none;
   pointer-events: ${props => props.active ? 'all' : 'none'};
 `
@@ -187,6 +209,30 @@ class GameContainer extends Component {
     })
   }
 
+  pushToLog (code, content) {
+    const { game: { id }, user: { uid } } = this.state
+
+    pushToLog(id, uid, code, content)
+  }
+
+  onReturnCard () {
+    const { action, game: { id }, user: { uid, name } } = this.state
+
+    if (action.type === 'MOVE_DISPLAYED_CARD') {
+      removeDisplayedCard(id, uid, action.options.cardIndex)
+      this.pushToLog(
+        'HIDE_CARD',
+        {
+          user: name,
+          type: action.options.cardIndex === 'mission'
+            ? action.options.cardIndex
+            : action.options.type
+        }
+      )
+      this.onChangeAction({})
+    }
+  }
+
   renderAction () {
     const {
       mouseX,
@@ -304,8 +350,11 @@ class GameContainer extends Component {
     return (
       <Root spectating={!hasHand}>
         <DropZoneBlocker active={action.type === 'MOVE_ARMY'} onContextMenu={e => e.preventDefault()} />
+        <ReturnCardZone active={action.type === 'MOVE_DISPLAYED_CARD'} onMouseUp={() => this.onReturnCard()} />
         {game.displayedCards.list.length > 0 && (
-          <DisplayedCards displayedCards={game.displayedCards} {...props} />
+          <OverlayMessages onMouseUp={() => this.onChangeAction({})}>
+            <DisplayedCards displayedCards={game.displayedCards} {...props} />
+          </OverlayMessages>
         )}
         <Tools {...props} />
         <Content ref={this.contentRef}>
