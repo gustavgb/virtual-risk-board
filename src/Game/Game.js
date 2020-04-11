@@ -11,6 +11,7 @@ import Card, { CardLabel } from 'Game/Components/Card'
 import { checkCode } from 'api/browse'
 import CenteredMessage from 'Components/CenteredMessage'
 import { Link } from 'react-router-dom'
+import RolledDice from './RolledDice'
 
 const Root = styled.div`
   width: 100vw;
@@ -347,13 +348,19 @@ class GameContainer extends Component {
       hasHand
     }
 
+    const hasOverlayMessages = (
+      game.displayedCards.list.length > 0 ||
+      Object.keys(game.dice).length > 0
+    )
+
     return (
       <Root spectating={!hasHand}>
         <DropZoneBlocker active={action.type === 'MOVE_ARMY'} onContextMenu={e => e.preventDefault()} />
         <ReturnCardZone active={action.type === 'MOVE_DISPLAYED_CARD'} onMouseUp={() => this.onReturnCard()} />
-        {game.displayedCards.list.length > 0 && (
+        {hasOverlayMessages && (
           <OverlayMessages onMouseUp={() => this.onChangeAction({})}>
             <DisplayedCards displayedCards={game.displayedCards} {...props} />
+            <RolledDice {...props} />
           </OverlayMessages>
         )}
         <Tools {...props} />

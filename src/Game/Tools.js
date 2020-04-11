@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
 import armyImg from 'images/army.png'
-import { setColors, takeCard, displayCard, pushToLog, throwRandomCard } from 'api/game'
+import { setColors, takeCard, displayCard, pushToLog, throwRandomCard, rollDice } from 'api/game'
 import { colors } from 'constants/colors'
 import { fromString } from 'utils/makeId'
 import Card, { CardLabel } from 'Game/Components/Card'
@@ -167,6 +167,9 @@ const Toolbar = styled.div`
 
   & * {
     user-select: none;
+    color: white;
+    font-size: 1.872rem;
+    font-weight: bold;
   }
 
   & > * {
@@ -189,6 +192,14 @@ const Toolbar = styled.div`
 
 const FlexSpacer = styled.span`
   flex-grow: 1;
+`
+
+const ToolbarButton = styled.button`
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: block;
+  outline: none;
 `
 
 class SidebarContainer extends Component {
@@ -349,6 +360,18 @@ class SidebarContainer extends Component {
     }
   }
 
+  onRollDice () {
+    const { game: { id }, user: { uid, name } } = this.props
+
+    rollDice(id, uid)
+    this.pushToLog(
+      'ROLL_DICE',
+      {
+        user: name
+      }
+    )
+  }
+
   render () {
     const {
       user: {
@@ -405,6 +428,7 @@ class SidebarContainer extends Component {
             Tilbage til forsiden
           </Link>
           <FlexSpacer />
+          <ToolbarButton onClick={() => rollDice(gameId, uid)}>Kast en terning</ToolbarButton>
           {hasHand && (
             <Details inline>
               <summary><h3>Mine begyndelseslande</h3></summary>

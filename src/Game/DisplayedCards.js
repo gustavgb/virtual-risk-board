@@ -96,6 +96,10 @@ class DisplayedCards extends Component {
   render () {
     const { displayedCards, users, user: { uid }, action } = this.props
 
+    if (displayedCards.list.length === 0) {
+      return null
+    }
+
     const user = users.find(u => u.id === displayedCards.userId)
     const isOwnCards = uid === displayedCards.userId
     const hasMissionCard = Boolean(displayedCards.list.find(c => c.cardIndex === 'mission'))
@@ -111,7 +115,7 @@ class DisplayedCards extends Component {
         <CardContainer>
           {displayedCards.list.map((card, index) => (
             <CardWrapper
-              key={card.cardIndex}
+              key={`card${card.cardIndex}`}
               selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
               width={card.cardIndex === 'mission' ? '14.22vw' : '6vw'}
             >

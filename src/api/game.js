@@ -18,6 +18,7 @@ const mapGame = (game) => {
     id: null,
     initialCountries: [],
     status: {},
+    dice: {},
     ...game,
     events: (game.events || []).map(event => ({
       ...event,
@@ -428,4 +429,30 @@ export const connectToPresence = (gameId, uid) => {
     userStatusRef.onDisconnect().cancel()
     userStatusRef.set(null)
   }
+}
+
+export const rollDice = (gameId, userId) => {
+  return database.ref(`games/${gameId}`).transaction(game => {
+    if (game) {
+      if (!game.dice) {
+        game.dice = {}
+      }
+
+      if (!game.dice[userId]) {
+        game.dice[userId] = []
+      }
+
+      game.dice[userId].push(Math.floor(Math.random() * 6) + 1)
+    }
+    return game
+  })
+}
+
+export const removeDice = (gameId, userId) => {
+  return database.ref(`games/${gameId}`).transaction(game => {
+    if (game && game.dice && game.dice[userId]) {
+      game.dice[userId] = null
+    }
+    return game
+  })
 }
