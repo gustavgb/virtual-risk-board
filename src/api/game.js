@@ -48,72 +48,81 @@ const mapHand = (hand) => ({
   ...hand
 })
 
-export const joinGame = (user, gameId) => {
-  let choosenMission = null
+export const startGame = (gameId) => {
+  const memberMissions = {}
+  const members = []
 
+  database.ref(`games/${gameId}`).transaction(game => {
+    if (game) {
+      if (!game.members) {
+        game.members = []
+      }
+
+      if (!game.missions) {
+        game.missions = []
+      }
+
+      game.members.forEach(member => {
+        memberMissions[member] = game.missions.pop()
+        members.push(member)
+      })
+
+      game.initialCountries = distribute(game.members, countries.map(country => country.name))
+    }
+
+    return game
+  })
+    .then(() => Promise.all(
+      members.map(member => database.ref(`hands/${gameId}${member}`).transaction(hand => {
+        if (!hand) {
+          return {
+            cards: [],
+            player: member,
+            game: gameId,
+            mission: memberMissions[member]
+          }
+        }
+        return hand
+      }))
+    ))
+    .then(() => database.ref(`games/${gameId}`).transaction(game => {
+      if (game) {
+        game.started = true
+      }
+      return game
+    }))
+}
+
+export const joinGame = (user, gameId) => {
   return getServerTime()
     .then(({ data: serverTime }) => store.dispatch({
       type: 'SET_TIME_OFFSET',
       offset: serverTime - Date.now()
     }))
     .then(() => database.ref(`games/${gameId}`).transaction(game => {
-      if (game) {
-        let changedMembers = false
+      if (game && !game.started) {
         if (!game.members) {
           game.members = []
-          changedMembers = true
         }
 
         if (!game.members.find(member => member === user.uid)) {
           game.members.push(user.uid)
-          changedMembers = true
-
-          if (!game.missions) {
-            game.missions = []
-          }
-
-          choosenMission = game.missions.pop()
-        }
-
-        if (changedMembers) {
-          game.initialCountries = distribute(game.members, countries.map(country => country.name))
-        }
-
-        if (!game.initialCountries) {
-          game.initialCountries = []
-        }
-
-        if (!game.missions) {
-          game.missions = {}
         }
       }
 
       return game
-    }))
-    .then(() => database.ref(`hands/${gameId}${user.uid}`).transaction(hand => {
-      if (!hand) {
-        return {
-          cards: [],
-          player: user.uid,
-          game: gameId,
-          mission: choosenMission
-        }
-      }
-      return hand
     }))
 }
 
 export const streamState = ({ uid }, gameId) => {
   const gameRef = database.ref(`games/${gameId}`)
   const boardRef = database.ref(`boards/${gameId}`)
-  const handRef = database.ref(`hands/${gameId}${uid}`)
   const eventsRef = database.ref(`events/${gameId}`)
   const membersRef = database.ref(`games/${gameId}/members`)
 
   return combineLatest(
     object(gameRef),
     object(boardRef),
-    object(handRef),
     object(eventsRef),
     object(membersRef).pipe(
       switchMap(members => combineLatest(
@@ -123,7 +132,7 @@ export const streamState = ({ uid }, gameId) => {
       map(users => users.map(user => ({ ...user.snapshot.val(), id: user.snapshot.key })))
     )
   ).pipe(
-    map(([game, board, hand, events, users]) => ({
+    map(([game, board, events, users]) => ({
       game: mapGame({
         ...game.snapshot.val(),
         ...board.snapshot.val(),
@@ -135,11 +144,18 @@ export const streamState = ({ uid }, gameId) => {
         ...users.find(u => u.id === uid),
         uid
       },
-      users,
-      hand: mapHand({
-        ...hand.snapshot.val(),
-        id: gameId + uid
-      })
+      users
+    }))
+  )
+}
+
+export const streamHand = ({ uid }, gameId) => {
+  const handRef = database.ref(`hands/${gameId}${uid}`)
+
+  return object(handRef).pipe(
+    map(hand => mapHand({
+      ...hand.snapshot.val(),
+      id: gameId + uid
     }))
   )
 }

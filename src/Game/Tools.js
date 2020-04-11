@@ -7,6 +7,7 @@ import { colors } from 'constants/colors'
 import { fromString } from 'utils/makeId'
 import Card, { CardLabel } from 'Game/Components/Card'
 import { Link } from 'react-router-dom'
+import Username from './Components/Username'
 
 const Sidebar = styled.div`
   width: 100%;
@@ -157,11 +158,6 @@ const PresenceStatus = styled.span`
   display: inline-block;
 `
 
-const Username = styled.span`
-  color: ${props => props.theme.invertColor(props.color)};
-  background-color: ${props => props.color};
-`
-
 const Toolbar = styled.div`
   padding: 0 1.5rem;
   display: flex;
@@ -201,7 +197,8 @@ class SidebarContainer extends Component {
       nextProps.action.type !== this.props.action.type ||
       nextProps.user.uid !== this.props.user.uid ||
       nextProps.game.timestamp !== this.props.game.timestamp ||
-      (nextProps.hand.cards && nextProps.hand.cards.length) !== (this.props.hand.cards && this.props.hand.cards.length)
+      (nextProps.hand.cards && nextProps.hand.cards.length) !== (this.props.hand.cards && this.props.hand.cards.length) ||
+      nextProps.hasHand !== this.props.hasHand
     )
   }
 
@@ -369,15 +366,24 @@ class SidebarContainer extends Component {
         mission
       },
       users,
-      action
+      action,
+      hasHand
     } = this.props
 
-    const selectedColor = colors.find(c => c.hex === gameColors[uid])
-    const filteredColors = colors.filter(c => !Object.keys(gameColors).find(key => gameColors[key] === c.hex && gameColors[uid] !== c.hex))
-    const myInitialCountries = initialCountries[uid]
-    const myColorId = selectedColor.hex && fromString(selectedColor.hex)
-    const myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
-    const myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
+    let selectedColor
+    let filteredColors
+    let myInitialCountries
+    let myColorId
+    let myCountries
+    let myDisplayedCards
+    if (hasHand) {
+      selectedColor = colors.find(c => c.hex === gameColors[uid])
+      filteredColors = colors.filter(c => !Object.keys(gameColors).find(key => gameColors[key] === c.hex && gameColors[uid] !== c.hex))
+      myInitialCountries = initialCountries[uid]
+      myColorId = selectedColor.hex && fromString(selectedColor.hex)
+      myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
+      myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
+    }
 
     return (
       <>
@@ -399,20 +405,22 @@ class SidebarContainer extends Component {
             Tilbage til forsiden
           </Link>
           <FlexSpacer />
-          <Details inline>
-            <summary><h3>Mine begyndelseslande</h3></summary>
-            <DetailsBody right>
-              <ul>
-                {myInitialCountries.map(country => (
-                  <ListItem done={myCountries.find(c => c === country)} key={country}>{country}</ListItem>
-                ))}
-              </ul>
-            </DetailsBody>
-          </Details>
+          {hasHand && (
+            <Details inline>
+              <summary><h3>Mine begyndelseslande</h3></summary>
+              <DetailsBody right>
+                <ul>
+                  {myInitialCountries.map(country => (
+                    <ListItem done={myCountries.find(c => c === country)} key={country}>{country}</ListItem>
+                  ))}
+                </ul>
+              </DetailsBody>
+            </Details>
+          )}
           <Details
             inline
           >
-            <summary><h3>Medspillere</h3></summary>
+            <summary><h3>Spillere</h3></summary>
             <DetailsBody right>
               <ul>
                 {users.map(user => {
@@ -437,66 +445,68 @@ class SidebarContainer extends Component {
             </DetailsBody>
           </Details>
         </Toolbar>
-        <Sidebar>
-          <Zone
-            color={selectedColor.hex}
-            bg={armyImg}
-            top
-            onClick={this.onTakeArmy.bind(this)}
-            popout={action.type === 'PLACE_ARMY'}
-          >
-            <Select
-              value={selectedColor.hex}
+        {hasHand && (
+          <Sidebar>
+            <Zone
               color={selectedColor.hex}
-              onChange={(e) => this.onChangeColor(e.target.value)}
-              onClick={e => e.stopPropagation()}
+              bg={armyImg}
+              top
+              onClick={this.onTakeArmy.bind(this)}
+              popout={action.type === 'PLACE_ARMY'}
             >
-              {filteredColors.map(c => <Option key={c.hex} color={c.hex} value={c.hex}>{c.name}</Option>)}
-            </Select>
-          </Zone>
-          <Zone bg={cardBackImg} color='#751b18' onMouseDown={this.onTakeCard.bind(this)} />
-          <Zone
-            top={cards.length > 0}
-            left={cards.length > 0}
-            color={cards.length === 0 ? 'rgba(100, 100, 100, 0.5)' : undefined}
-            popout={action.type === 'TAKE_CARD'}
-            onMouseUp={this.onPlaceCard.bind(this)}
-            height={cards.length > 0 ? 'auto' : '20vh'}
-          >
-            {cards.length === 0 && 'Tag kort ved at trække dem herhen fra bunken'}
-            <Hand>
-              {cards.map((card, index) => (
-                <Card
-                  key={index}
-                  type={card}
-                  onMouseDown={() => this.onMoveCard(card, index)}
-                  selected={
-                    (action.type === 'MOVE_CARD' && action.options.index === index) ||
-                    myDisplayedCards.find(card => card.cardIndex === index)
-                  }
-                />
-              ))}
-            </Hand>
-            {cards.length > 0 && (
-              <Button onClick={this.onThrowRandomCard.bind(this)}>
-                Smid et tilfældigt kort
-              </Button>
-            )}
-          </Zone>
-          <Zone height='auto'>
-            <Card
-              width='17vw'
-              landscape
-              onMouseDown={() => this.onMoveCard(mission, 'mission')}
-              selected={
-                (action.type === 'MOVE_CARD' && action.options.index === 'mission') ||
-                myDisplayedCards.find(card => card.cardIndex === 'mission')
-              }
+              <Select
+                value={selectedColor.hex}
+                color={selectedColor.hex}
+                onChange={(e) => this.onChangeColor(e.target.value)}
+                onClick={e => e.stopPropagation()}
+              >
+                {filteredColors.map(c => <Option key={c.hex} color={c.hex} value={c.hex}>{c.name}</Option>)}
+              </Select>
+            </Zone>
+            <Zone bg={cardBackImg} color='#751b18' onMouseDown={this.onTakeCard.bind(this)} />
+            <Zone
+              top={cards.length > 0}
+              left={cards.length > 0}
+              color={cards.length === 0 ? 'rgba(100, 100, 100, 0.5)' : undefined}
+              popout={action.type === 'TAKE_CARD'}
+              onMouseUp={this.onPlaceCard.bind(this)}
+              height={cards.length > 0 ? 'auto' : '20vh'}
             >
-              <CardLabel>{mission}</CardLabel>
-            </Card>
-          </Zone>
-        </Sidebar>
+              {cards.length === 0 && 'Tag kort ved at trække dem herhen fra bunken'}
+              <Hand>
+                {cards.map((card, index) => (
+                  <Card
+                    key={index}
+                    type={card}
+                    onMouseDown={() => this.onMoveCard(card, index)}
+                    selected={
+                      (action.type === 'MOVE_CARD' && action.options.index === index) ||
+                      myDisplayedCards.find(card => card.cardIndex === index)
+                    }
+                  />
+                ))}
+              </Hand>
+              {cards.length > 0 && (
+                <Button onClick={this.onThrowRandomCard.bind(this)}>
+                  Smid et tilfældigt kort
+                </Button>
+              )}
+            </Zone>
+            <Zone height='auto'>
+              <Card
+                width='17vw'
+                landscape
+                onMouseDown={() => this.onMoveCard(mission, 'mission')}
+                selected={
+                  (action.type === 'MOVE_CARD' && action.options.index === 'mission') ||
+                  myDisplayedCards.find(card => card.cardIndex === 'mission')
+                }
+              >
+                <CardLabel>{mission}</CardLabel>
+              </Card>
+            </Zone>
+          </Sidebar>
+        )}
       </>
     )
   }

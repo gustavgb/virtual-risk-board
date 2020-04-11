@@ -122,8 +122,13 @@ class BoardContainer extends Component {
       action,
       game: {
         id
-      }
+      },
+      hasHand
     } = this.props
+
+    if (!hasHand) {
+      return
+    }
 
     const isSame = shouldAdd && action.type === 'MOVE_ARMY' && action.options.countryName === countryName && action.options.armyId === army.id
 

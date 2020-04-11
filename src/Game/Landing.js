@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import { colors } from 'constants/colors'
-import { setColors } from 'api/game'
+import { setColors, startGame } from 'api/game'
+import Username from './Components/Username'
 
 const Modal = styled.div`
   width: 60vw;
@@ -50,7 +51,8 @@ const Button = styled.button`
 const LandingPrompt = ({
   game: {
     id,
-    colors: gameColors
+    colors: gameColors,
+    creator
   },
   user: {
     uid
@@ -58,8 +60,9 @@ const LandingPrompt = ({
   users
 }) => {
   const filteredColors = colors.filter(c => !Object.keys(gameColors).find(key => gameColors[key] === c.hex && gameColors[uid] !== c.hex))
-  const members = users.filter(u => u.id !== uid)
-  const [selectedColor, selectColor] = useState('')
+  const selectedColor = colors.find(c => gameColors[uid] === c.hex) || {}
+
+  const isReady = users.filter(u => !gameColors[u.id]).length === 0
 
   return (
     <Modal>
@@ -70,29 +73,30 @@ const LandingPrompt = ({
           <Color
             key={color.hex}
             color={color.hex}
-            onClick={() => selectColor(color.hex)}
+            onClick={() => setColors(id, uid, color.hex)}
             label={color.name}
-            selected={selectedColor === color.hex}
+            selected={selectedColor.hex === color.hex}
           />
         ))}
       </Colors>
 
-      <h2>Dine medspillere:</h2>
-      {members.length > 0 && (
+      <h2>Spillere:</h2>
+      {users.length > 0 && (
         <>
           <ul>
-            {members.map(user => (
-              <li key={user.id}>{user.name} ({user.email})</li>
+            {users.map(user => (
+              <li key={user.id}><Username color={gameColors[user.id]}>{user.name} ({user.email})</Username></li>
             ))}
           </ul>
         </>
       )}
 
-      {members.length === 0 && (
-        <p>Du er den første spiller i dette spil!</p>
+      {creator === uid && (
+        <Button disabled={!isReady} onClick={() => startGame(id)}>Start spil</Button>
       )}
-
-      <Button disabled={!selectedColor} onClick={() => setColors(id, uid, selectedColor)}>Start spil</Button>
+      {creator !== uid && (
+        <p><i>Vent på at ejeren af spillet trykker Start</i></p>
+      )}
     </Modal>
   )
 }

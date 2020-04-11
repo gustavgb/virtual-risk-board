@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import cardBackImg from 'images/card_back.png'
-import { streamState, joinGame, connectToPresence } from 'api/game'
+import { streamState, joinGame, connectToPresence, streamHand } from 'api/game'
 import Tools from 'Game/Tools'
 import BoardContainer from 'Game/Board'
 import DisplayedCards from 'Game/DisplayedCards'
@@ -16,9 +16,7 @@ const Root = styled.div`
   width: 100vw;
   height: 100vh;
   display: grid;
-  grid-template-areas:
-    "toolbar toolbar"
-    "sidebar board";
+  grid-template-areas: "toolbar toolbar" ${props => props.spectating ? '"board board"' : '"sidebar board"'};
   grid-template-rows: 6rem 1fr;
   grid-template-columns: 25vw 1fr;
 `
@@ -92,6 +90,7 @@ class GameContainer extends Component {
     this.contentRef = React.createRef()
 
     this.streamState = null
+    this.streamHand = null
 
     this._onMouseMove = this.onMouseMove.bind(this)
     this._onResize = this.onResize.bind(this)
@@ -109,6 +108,11 @@ class GameContainer extends Component {
 
         this.streamState = streamState(user, joinedGame).subscribe((state) => {
           this.setState(state)
+        })
+        this.streamHand = streamHand(user, joinedGame).subscribe((hand) => {
+          this.setState({
+            hand
+          })
         })
       })
       .catch(() => this.setState({
@@ -136,8 +140,8 @@ class GameContainer extends Component {
 
   componentDidUpdate (prevProps, prevState) {
     if (
-      (!prevState.game || !prevState.hand || !prevState.users || !prevState.game.colors[prevState.user.uid]) &&
-      (this.state.game && this.state.hand && this.state.users && this.state.game.colors[this.state.user.uid])
+      (!prevState.game || !prevState.hand || !prevState.users || !prevState.game.started) &&
+      (this.state.game && this.state.hand && this.state.users && this.state.game.started)
     ) {
       this.onResize()
     }
@@ -269,11 +273,13 @@ class GameContainer extends Component {
       )
     }
 
-    if (!game || !users || !hand) {
+    const hasHand = game && game.started && game.members && game.members.indexOf(user.uid) > -1
+
+    if (!game || !users || (!hand && hasHand)) {
       return <CenteredMessage>Loading...</CenteredMessage>
     }
 
-    if (!game.colors[user.uid]) {
+    if (!game.started) {
       return (
         <LandingPrompt
           user={user}
@@ -291,11 +297,12 @@ class GameContainer extends Component {
       action,
       width,
       height,
-      hand
+      hand,
+      hasHand
     }
 
     return (
-      <Root>
+      <Root spectating={!hasHand}>
         <DropZoneBlocker active={action.type === 'MOVE_ARMY'} onContextMenu={e => e.preventDefault()} />
         {game.displayedCards.list.length > 0 && (
           <DisplayedCards displayedCards={game.displayedCards} {...props} />
