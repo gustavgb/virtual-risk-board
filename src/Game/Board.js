@@ -170,7 +170,7 @@ class BoardContainer extends Component {
   onDiscardAction (e) {
     e.stopPropagation()
     const { action } = this.props
-    if (action.type) {
+    if (action.type && !action.type === 'MOVE_ARMY') {
       this.props.onChangeAction({})
     }
   }
@@ -249,7 +249,7 @@ class BoardContainer extends Component {
     } = this.props
 
     const joinedCountries = countries.map(country => ({ ...countriesDir[country.name], ...country }))
-    const pop = action.type === 'PLACE_ARMY' || action.type === 'MOVE_ARMY'
+    const pop = action.type === 'PLACE_ARMY'
 
     return (
       <>
