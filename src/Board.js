@@ -130,15 +130,17 @@ class BoardContainer extends Component {
     if (action.type === 'PLACE_ARMY' || (action.type === 'MOVE_ARMY' && !isSame)) {
       placeArmy(id, uid, countryName, action.options.color, action.options.amount)
       this.props.onChangeAction({})
-      this.pushToLog(
-        'PLACE_ARMY',
-        {
-          user: name,
-          amount: action.options.amount,
-          origin: action.options.countryName || null,
-          destination: countryName
-        }
-      )
+      if (action.options.countryName !== countryName) {
+        this.pushToLog(
+          'PLACE_ARMY',
+          {
+            user: name,
+            amount: action.options.amount,
+            origin: action.options.countryName || null,
+            destination: countryName
+          }
+        )
+      }
     } else if (action.type === 'MOVE_ARMY' || !action.type) {
       let amount = 1
       if (isSame) {

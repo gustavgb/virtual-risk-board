@@ -171,10 +171,13 @@ class EventLog extends Component {
 
     switch (code) {
       case 'PLACE_ARMY':
-        if (options.origin) {
-          return `${options.user} har flyttet ${options.amount} armér${options.amount > 1 ? 'er' : ''} fra ${options.origin} til ${options.destination}`
+        if (options.origin !== options.destination) {
+          if (options.origin) {
+            return `${options.user} har flyttet ${options.amount} armér${options.amount > 1 ? 'er' : ''} fra ${options.origin} til ${options.destination}`
+          }
+          return `${options.user} har placeret ${options.amount} armér${options.amount > 1 ? 'er' : ''} i ${options.destination}`
         }
-        return `${options.user} har placeret ${options.amount} armér${options.amount > 1 ? 'er' : ''} i ${options.destination}`
+        return ''
       case 'DISCARD_ARMY':
         return `${options.user} har fjernet ${options.amount} armér${options.amount > 1 ? 'er' : ''} fra ${options.country}`
       case 'CHANGE_COLOR':
@@ -263,16 +266,22 @@ class EventLog extends Component {
     return (
       <Root>
         <StaticMessages>
-          {eventsFiltered.map(event => (
-            <ExpireringMessage
-              key={event.timestamp}
-              expire={event.expire - 500}
-            >
-              {({ expired }) => (
-                <Message expired={expired}>{this.parseEvent(event)}</Message>
-              )}
-            </ExpireringMessage>
-          ))}
+          {eventsFiltered.map(event => {
+            const parsedEvent = this.parseEvent(event)
+            if (parsedEvent) {
+              return (
+                <ExpireringMessage
+                  key={event.timestamp}
+                  expire={event.expire - 500}
+                >
+                  {({ expired }) => (
+                    <Message expired={expired}>{parsedEvent}</Message>
+                  )}
+                </ExpireringMessage>
+              )
+            }
+            return null
+          })}
         </StaticMessages>
         {events.map(event => this.renderAnimatedEvent(event))}
       </Root>
