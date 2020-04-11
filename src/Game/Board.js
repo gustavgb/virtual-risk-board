@@ -18,7 +18,7 @@ const Board = styled.div.attrs(props => ({
   background-position: center;
   background-repeat: no-repeat;
   position: absolute;
-  z-index: ${props => props.popout ? 200 : 0};
+  z-index: ${props => props.popout ? 200 : 'unset'};
 `
 
 const CountryLabel = styled.div`
@@ -85,7 +85,7 @@ const Trash = styled.div`
   position: absolute;
   bottom: ${props => props.active ? '20px' : '-10vw'};
   left: 3rem;
-  z-index: 100;
+  z-index: 300;
   transition: all 0.2s ease-out;
   background-color: rgba(100, 100, 100, 0.7);
 
@@ -170,7 +170,12 @@ class BoardContainer extends Component {
   onDiscardAction (e) {
     e.stopPropagation()
     const { action } = this.props
-    if (action.type && !action.type === 'MOVE_ARMY') {
+
+    if (action.type === 'MOVE_ARMY') {
+      return
+    }
+
+    if (action.type) {
       this.props.onChangeAction({})
     }
   }
@@ -249,7 +254,7 @@ class BoardContainer extends Component {
     } = this.props
 
     const joinedCountries = countries.map(country => ({ ...countriesDir[country.name], ...country }))
-    const pop = action.type === 'PLACE_ARMY'
+    const pop = action.type === 'PLACE_ARMY' || action.type === 'MOVE_ARMY'
 
     return (
       <>
