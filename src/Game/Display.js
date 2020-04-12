@@ -4,9 +4,9 @@ import DisplayedCards from 'Game/DisplayedCards'
 import RolledDice from 'Game/RolledDice'
 
 const Overlay = styled.div`
-  grid-area: board;
+  grid-area: display;
   z-index: 100;
-  background-color: rgba(100, 100, 100, 0.7);
+  background-color: rgba(100, 100, 100, 0.4);
   color: white;
   font-size: 25px;
   user-select: none;
@@ -15,7 +15,8 @@ const Overlay = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10rem;
+  padding: 10rem 3rem;
+  width: 30vw;
 `
 
 const OverlayMessages = memo((props) => {

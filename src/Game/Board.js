@@ -260,7 +260,12 @@ class BoardContainer extends Component {
     return (
       <>
         <Trash active={action.type === 'MOVE_ARMY'} onClick={this.onDiscardArmy.bind(this)} />
-        <Board width={width} height={height} popout={pop} onClick={this.onDiscardAction.bind(this)}>
+        <Board
+          width={width}
+          height={height}
+          popout={pop}
+          onClick={this.onDiscardAction.bind(this)}
+        >
           {joinedCountries.map(country => this.renderCountry(country))}
         </Board>
       </>

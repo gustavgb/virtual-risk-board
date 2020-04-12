@@ -8,7 +8,7 @@ const CardContainer = styled.div`
   flex-direction: row;
   justify-content: center;
   flex-wrap: wrap;
-  max-width: 50vw;
+  max-width: 100%;
 `
 
 const flyIn = keyframes`

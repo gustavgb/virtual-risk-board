@@ -113,7 +113,8 @@ const ListItem = styled.li`
 `
 
 const BoardDropZone = styled.div`
-  grid-area: board;
+  grid-row: board;
+  grid-column: ${props => props.hasDisplay ? 'board / display' : 'board'};
   z-index: 200;
   background-color: #555;
   opacity: 0;
@@ -417,6 +418,7 @@ class SidebarContainer extends Component {
       <>
         <BoardDropZone
           active={action.type === 'MOVE_CARD'}
+          hasDisplay={Object.keys(displayedCards).length > 0}
           onMouseUp={this.onClickBoard.bind(this)}
         >
           Vis dette kort til de andre spillere
@@ -431,7 +433,9 @@ class SidebarContainer extends Component {
             Tilbage til forsiden
           </Link>
           <FlexSpacer />
-          <ToolbarButton onClick={this.onRollDice.bind(this)}>Kast en terning</ToolbarButton>
+          {hasHand && (
+            <ToolbarButton onClick={this.onRollDice.bind(this)}>Kast en terning</ToolbarButton>
+          )}
           {hasHand && (
             <Details inline>
               <summary><h3>Mine begyndelseslande</h3></summary>

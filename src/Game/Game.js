@@ -10,19 +10,20 @@ import Card, { CardLabel } from 'Game/Components/Card'
 import { checkCode } from 'api/browse'
 import CenteredMessage from 'Components/CenteredMessage'
 import { Link } from 'react-router-dom'
-import OverlayMessages from './OverlayMessages'
+import Display from 'Game/Display'
 
 const Root = styled.div`
   width: 100vw;
   height: 100vh;
   display: grid;
-  grid-template-areas: "toolbar toolbar" ${props => props.spectating ? '"board board"' : '"sidebar board"'};
+  grid-template-areas: "toolbar toolbar toolbar" ${props => props.spectating ? '"board board display"' : '"sidebar board display"'};
   grid-template-rows: 6rem 1fr;
-  grid-template-columns: 25vw 1fr;
+  grid-template-columns: 25vw 1fr min-content;
 `
 
 const Content = styled.div`
-  grid-area: board;
+  grid-row: board;
+  grid-column: board;
   position: relative;
   width: 100%;
   height: 100%;
@@ -131,8 +132,6 @@ class GameContainer extends Component {
 
     window.addEventListener('mousemove', this._onMouseMove)
     window.addEventListener('resize', this._onResize)
-
-    this.onResize()
   }
 
   componentWillUnmount () {
@@ -158,9 +157,17 @@ class GameContainer extends Component {
     ) {
       this.onResize()
     }
+
+    const prevHasDisplay = prevState.game && prevState.game.display && (prevState.game.display.cards || prevState.game.display.dice)
+    const nowHasDisplay = this.state.game && this.state.game.display && (this.state.game.display.cards || this.state.game.display.dice)
+    if (prevHasDisplay !== nowHasDisplay) {
+      this.onResize()
+    }
   }
 
   onResize () {
+    console.log('resize')
+
     if (this.contentRef.current) {
       const rect = this.contentRef.current.getBoundingClientRect()
       const innerWidth = rect.width
@@ -342,7 +349,7 @@ class GameContainer extends Component {
       <Root spectating={!hasHand}>
         <DropZoneBlocker active={action.type === 'MOVE_ARMY'} onContextMenu={e => e.preventDefault()} />
         <ReturnCardZone active={action.type === 'MOVE_DISPLAYED_CARD'} onMouseUp={() => this.onReturnCard()} />
-        <OverlayMessages {...props} />
+        <Display {...props} />
         <Tools {...props} />
         <Content ref={this.contentRef}>
           <BoardContainer {...props} />
