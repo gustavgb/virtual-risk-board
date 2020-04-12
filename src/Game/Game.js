@@ -326,7 +326,7 @@ class GameContainer extends Component {
 
     const hasHand = game && game.started && game.members && game.members.indexOf(user.uid) > -1
 
-    if (!game || !users || (!hand && hasHand)) {
+    if (!game || !users || (!hand && hasHand) || game.starting) {
       return <CenteredMessage>Loading...</CenteredMessage>
     }
 

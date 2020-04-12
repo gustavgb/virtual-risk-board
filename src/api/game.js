@@ -57,6 +57,8 @@ export const startGame = (gameId) => {
 
   database.ref(`games/${gameId}`).transaction(game => {
     if (game) {
+      game.starting = true
+
       if (!game.members) {
         game.members = []
       }
@@ -99,6 +101,7 @@ export const startGame = (gameId) => {
     .then(() => database.ref(`games/${gameId}`).transaction(game => {
       if (game) {
         game.started = true
+        game.starting = null
       }
       return game
     }))
