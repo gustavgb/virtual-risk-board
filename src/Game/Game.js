@@ -4,14 +4,13 @@ import cardBackImg from 'images/card_back.png'
 import { streamState, joinGame, connectToPresence, streamHand, removeDisplayedCard, pushToLog } from 'api/game'
 import Tools from 'Game/Tools'
 import BoardContainer from 'Game/Board'
-import DisplayedCards from 'Game/DisplayedCards'
 import EventLog from 'Game/EventLog'
 import LandingPrompt from 'Game/Landing'
 import Card, { CardLabel } from 'Game/Components/Card'
 import { checkCode } from 'api/browse'
 import CenteredMessage from 'Components/CenteredMessage'
 import { Link } from 'react-router-dom'
-import RolledDice from './RolledDice'
+import OverlayMessages from './OverlayMessages'
 
 const Root = styled.div`
   width: 100vw;
@@ -66,20 +65,7 @@ const DropZoneBlocker = styled.div`
   user-select: none;
   pointer-events: ${props => props.active ? 'all' : 'none'};
 `
-const OverlayMessages = styled.div`
-  grid-area: board;
-  z-index: 100;
-  background-color: rgba(100, 100, 100, 0.7);
-  color: white;
-  font-size: 25px;
-  user-select: none;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10rem;
-`
+
 const ReturnCardZone = styled.div`
   grid-column: 1 / 3;
   grid-row: 1 / 3;
@@ -352,21 +338,11 @@ class GameContainer extends Component {
       hasHand
     }
 
-    const hasOverlayMessages = (
-      game.display.cards ||
-      game.display.dice
-    )
-
     return (
       <Root spectating={!hasHand}>
         <DropZoneBlocker active={action.type === 'MOVE_ARMY'} onContextMenu={e => e.preventDefault()} />
         <ReturnCardZone active={action.type === 'MOVE_DISPLAYED_CARD'} onMouseUp={() => this.onReturnCard()} />
-        {hasOverlayMessages && (
-          <OverlayMessages onMouseUp={() => this.onChangeAction({})}>
-            <DisplayedCards cards={game.display.cards} {...props} />
-            <RolledDice dice={game.display.dice} {...props} />
-          </OverlayMessages>
-        )}
+        <OverlayMessages {...props} />
         <Tools {...props} />
         <Content ref={this.contentRef}>
           <BoardContainer {...props} />

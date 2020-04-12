@@ -384,8 +384,10 @@ class SidebarContainer extends Component {
         initialCountries,
         countries,
         colors: gameColors,
-        displayedCards,
-        id: gameId
+        id: gameId,
+        display: {
+          cards: displayedCards = {}
+        }
       },
       hand: {
         cards,
@@ -408,7 +410,7 @@ class SidebarContainer extends Component {
       myInitialCountries = initialCountries[uid]
       myColorId = selectedColor.hex && fromString(selectedColor.hex)
       myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
-      myDisplayedCards = displayedCards.userId === uid ? displayedCards.list : []
+      myDisplayedCards = displayedCards[uid] || []
     }
 
     return (
@@ -417,9 +419,7 @@ class SidebarContainer extends Component {
           active={action.type === 'MOVE_CARD'}
           onMouseUp={this.onClickBoard.bind(this)}
         >
-          {(displayedCards.userId === uid || !displayedCards.userId)
-            ? 'Vis dette kort til de andre spillere'
-            : 'Du kan ikke vise dine kort mens andre gør det'}
+          Vis dette kort til de andre spillere
         </BoardDropZone>
         <CancelDropZone
           active={['PLACE_ARMY', 'MOVE_CARD', 'TAKE_CARD'].indexOf(action.type) > -1}
