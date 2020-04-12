@@ -203,7 +203,7 @@ class EventLog extends Component {
       case 'THROW_CARD':
         return `${options.user} har smidt et tilfældigt kort`
       case 'DISCARD_DICE':
-        return `${options.user} har fjernet sine terninger (${options.dice.join(', ')})`
+        return `${options.user} har fjernet ${options.dice.length > 0 ? 'sine terninger' : 'sin terning'} (${options.dice.join(', ')})`
       case 'ROLL_DICE':
         return `${options.user} har rullet en terning`
       default:

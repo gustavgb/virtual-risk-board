@@ -1,3 +1,5 @@
+import { getRandom } from './random'
+
 export const shuffle = (basis) => {
   const array = [...basis]
   let currentIndex = array.length
@@ -7,7 +9,7 @@ export const shuffle = (basis) => {
   // While there remain elements to shuffle...
   while (currentIndex !== 0) {
     // Pick a remaining element...
-    randomIndex = Math.floor(Math.random() * currentIndex)
+    randomIndex = Math.floor(getRandom(0, currentIndex))
     currentIndex -= 1
 
     // And swap it with the current element.
@@ -43,7 +45,7 @@ export const giveRandom = (users, items) => {
 }
 
 export const removeRandom = (array, out = {}) => {
-  const r = Math.floor(Math.random() * array.length)
+  const r = Math.floor(getRandom(0, array.length))
   out.index = r
   const result = [...array]
   result.splice(r, 1)

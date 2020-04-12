@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import { pushToLog, removeDice } from 'api/game'
+import { pushToLog, removeDice, rollDice } from 'api/game'
 import Dice from './Components/Dice'
 
 const DiceContainer = styled.div`
@@ -15,15 +15,15 @@ const Header = styled.div`
   color: white;
 `
 
-const DiscardButton = styled.button`
+const Button = styled.button`
   padding: 20px 30px;
   margin: 10px 0;
   width: 100%;
   display: block;
-  background-color: red;
+  background-color: ${props => props.color};
+  color: ${props => props.theme.invertColor(props.color)};
   border: 0;
   font-size: 20px;
-  color: white;
   cursor: pointer;
 `
 
@@ -52,6 +52,17 @@ class RolledDice extends Component {
     )
   }
 
+  onRoll (removeOld) {
+    const { game: { id }, user: { uid, name } } = this.props
+    rollDice(id, uid, removeOld)
+    this.pushToLog(
+      'ROLL_DICE',
+      {
+        user: name
+      }
+    )
+  }
+
   render () {
     const { game: { dice }, users, user: { uid } } = this.props
 
@@ -64,9 +75,28 @@ class RolledDice extends Component {
         return (
           <React.Fragment key={`rolledDice${userId}`}>
             <Header>
-              <h2>{uid === userId ? 'Du har kastet' : `${user.name} har kastet`} {rolledDice.length} terninger</h2>
+              <h2>{uid === userId ? 'Du har kastet' : `${user.name} har kastet`} {rolledDice.length} {rolledDice.length > 0 ? 'terninger' : 'terning'}</h2>
               {isOwnDice && (
-                <DiscardButton onClick={this.onDiscard.bind(this)}>Fjern terningerne</DiscardButton>
+                <>
+                  <Button
+                    onClick={() => this.onRoll()}
+                    color='#ddd'
+                  >
+                    Rul en terning mere
+                  </Button>
+                  <Button
+                    onClick={() => this.onRoll(true)}
+                    color='#ddd'
+                  >
+                    Rul forfra
+                  </Button>
+                  <Button
+                    color='#f00'
+                    onClick={this.onDiscard.bind(this)}
+                  >
+                    Fjern {rolledDice.length > 0 ? 'terningerne' : 'terningen'}
+                  </Button>
+                </>
               )}
             </Header>
             <DiceContainer>

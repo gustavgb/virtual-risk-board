@@ -6,6 +6,7 @@ import { combineLatest } from 'rxjs'
 import { countries } from 'constants/countries'
 import store from 'store'
 import { distribute, removeRandom, shuffle } from 'utils/cards'
+import { getRandom } from 'utils/random'
 
 const mapGame = (game) => {
   const timeOffset = store.getState().timeOffset
@@ -63,6 +64,8 @@ export const startGame = (gameId) => {
       if (!game.missions) {
         game.missions = []
       }
+
+      game.members = shuffle(game.members)
 
       if (game.missions.length > game.members.length) {
         game.missions = shuffle(game.missions)
@@ -185,7 +188,7 @@ export const setColors = (gameId, uid, color) => {
 }
 
 export const takeCard = (gameId, userId) => {
-  const cardType = Math.floor(Math.random() * 3)
+  const cardType = Math.floor(getRandom(0, 3))
 
   return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
     if (hand) {
@@ -438,19 +441,26 @@ export const connectToPresence = (gameId, uid) => {
   }
 }
 
-export const rollDice = (gameId, userId) => {
+export const rollDice = (gameId, userId, removeOld) => {
   return database.ref(`games/${gameId}`).transaction(game => {
     if (game) {
       if (!game.dice) {
         game.dice = {}
       }
 
-      if (!game.dice[userId]) {
+      if (!game.dice[userId] || removeOld) {
         game.dice[userId] = []
       }
 
-      const n = Math.floor((window.crypto.getRandomValues(new Uint32Array(1)) / 4294967295) * 6) + 1
-      game.dice[userId].push(n)
+      game.dice[userId].push(Math.floor(getRandom(1, 6)))
+      game.dice[userId].sort((a, b) => {
+        if (a > b) {
+          return -1
+        } else if (a < b) {
+          return 1
+        }
+        return 0
+      })
     }
     return game
   })
