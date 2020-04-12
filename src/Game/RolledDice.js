@@ -41,7 +41,7 @@ class RolledDice extends Component {
   }
 
   onDiscard () {
-    const { game: { id, dice }, user: { uid, name } } = this.props
+    const { game: { id }, dice, user: { uid, name } } = this.props
     removeDice(id, uid)
     this.pushToLog(
       'DISCARD_DICE',
@@ -64,7 +64,11 @@ class RolledDice extends Component {
   }
 
   render () {
-    const { game: { dice }, users, user: { uid } } = this.props
+    const { dice, users, user: { uid } } = this.props
+
+    if (!dice) {
+      return null
+    }
 
     return (
       Object.keys(dice).map(userId => {

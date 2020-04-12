@@ -52,8 +52,7 @@ const DiscardButton = styled.button`
 class DisplayedCards extends Component {
   shouldComponentUpdate (nextProps) {
     return (
-      nextProps.displayedCards.userId !== this.props.displayedCards.userId ||
-      nextProps.displayedCards.list.length !== this.props.displayedCards.list.length ||
+      nextProps.game.timestamp !== this.props.game.timestamp ||
       nextProps.action.type !== this.props.action.type
     )
   }
@@ -64,73 +63,83 @@ class DisplayedCards extends Component {
     pushToLog(id, uid, code, content)
   }
 
-  onTakeCard (card, index) {
-    const { action, displayedCards, user: { uid } } = this.props
+  onTakeCard (userId, card, index) {
+    const { action, user: { uid } } = this.props
 
-    if (action.type !== 'MOVE_DISPLAYED_CARD' && displayedCards.userId === uid) {
+    if (action.type !== 'MOVE_DISPLAYED_CARD' && uid === userId) {
       this.props.onChangeAction({
         type: 'MOVE_DISPLAYED_CARD',
         options: {
           type: card.cardType,
           index,
-          cardIndex: card.cardIndex
+          cardIndex: card.cardIndex,
+          userId
         }
       })
     }
   }
 
   onDiscardCards () {
-    const { game: { id }, user: { uid, name }, displayedCards } = this.props
+    const { game: { id }, user: { uid, name }, cards } = this.props
     if (window.confirm('Vil du smide disse kort?')) {
-      discardDisplayedCards(id, uid, displayedCards.list)
+      discardDisplayedCards(id, uid, cards[uid])
       this.pushToLog(
         'DISCARD_CARDS',
         {
           user: name,
-          cards: displayedCards.list.map(cards => cards.cardType)
+          cards: cards[uid].map(cards => cards.cardType)
         }
       )
     }
   }
 
   render () {
-    const { displayedCards, users, user: { uid }, action } = this.props
+    const { cards, users, user: { uid }, action } = this.props
 
-    if (displayedCards.list.length === 0) {
+    if (!cards) {
       return null
     }
 
-    const user = users.find(u => u.id === displayedCards.userId)
-    const isOwnCards = uid === displayedCards.userId
-    const hasMissionCard = Boolean(displayedCards.list.find(c => c.cardIndex === 'mission'))
+    const cardUsers = Object.keys(cards)
 
-    return (
-      <>
-        <Header>
-          <h2>{uid === displayedCards.userId ? 'Du viser dine kort' : `${user.name} viser sine kort`}</h2>
-          {isOwnCards && !hasMissionCard && (
-            <DiscardButton onClick={this.onDiscardCards.bind(this)}>Smid disse kort</DiscardButton>
-          )}
-        </Header>
-        <CardContainer>
-          {displayedCards.list.map((card, index) => (
-            <CardWrapper
-              key={`card${card.cardIndex}`}
-              selected={action.type === 'MOVE_DISPLAYED_CARD' && action.options.index === index}
-              width={card.cardIndex === 'mission' ? '14.22vw' : '6vw'}
-            >
-              <Card
-                type={card.cardType}
-                landscape={card.cardIndex === 'mission'}
-                onMouseDown={() => this.onTakeCard(card, index)}
+    return cardUsers.map(userId => {
+      const user = users.find(u => u.id === userId)
+      const isOwnCards = uid === userId
+      const cardList = cards[userId]
+      const hasMissionCard = Boolean(cardList.find(c => c.cardIndex === 'mission'))
+
+      return (
+        <React.Fragment key={`cards${userId}`}>
+          <Header>
+            <h2>{uid === userId ? 'Du viser dine kort' : `${user.name} viser sine kort`}</h2>
+            {isOwnCards && !hasMissionCard && (
+              <DiscardButton onClick={this.onDiscardCards.bind(this)}>Smid disse kort</DiscardButton>
+            )}
+          </Header>
+          <CardContainer>
+            {cardList.map((card, index) => (
+              <CardWrapper
+                key={`card${card.cardIndex}`}
+                selected={(
+                  action.type === 'MOVE_DISPLAYED_CARD' &&
+                  action.options.userId === userId &&
+                  action.options.index === index
+                )}
+                width={card.cardIndex === 'mission' ? '14.22vw' : '6vw'}
               >
-                <CardLabel>{card.cardIndex === 'mission' ? card.cardType : ''}</CardLabel>
-              </Card>
-            </CardWrapper>
-          ))}
-        </CardContainer>
-      </>
-    )
+                <Card
+                  type={card.cardType}
+                  landscape={card.cardIndex === 'mission'}
+                  onMouseDown={() => this.onTakeCard(userId, card, index)}
+                >
+                  <CardLabel>{card.cardIndex === 'mission' ? card.cardType : ''}</CardLabel>
+                </Card>
+              </CardWrapper>
+            ))}
+          </CardContainer>
+        </React.Fragment>
+      )
+    })
   }
 }
 

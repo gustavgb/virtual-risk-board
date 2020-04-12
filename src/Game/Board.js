@@ -111,7 +111,7 @@ class BoardContainer extends Component {
     pushToLog(id, uid, code, content)
   }
 
-  onClickCountry (e, countryName, army, shouldAdd = false) {
+  onClickCountry (e, country, army, shouldAdd = false) {
     e.preventDefault()
 
     const {
@@ -130,19 +130,19 @@ class BoardContainer extends Component {
       return
     }
 
-    const isSame = shouldAdd && action.type === 'MOVE_ARMY' && action.options.countryName === countryName && action.options.armyId === army.id
+    const isSame = shouldAdd && action.type === 'MOVE_ARMY' && action.options.countryName === country.name && action.options.armyId === army.id
 
     if (action.type === 'PLACE_ARMY' || (action.type === 'MOVE_ARMY' && !isSame)) {
-      placeArmy(id, uid, countryName, action.options.color, action.options.amount)
+      placeArmy(id, uid, country.id, action.options.color, action.options.amount)
       this.props.onChangeAction({})
-      if (action.options.countryName !== countryName) {
+      if (action.options.countryName !== country.name) {
         this.pushToLog(
           'PLACE_ARMY',
           {
             user: name,
             amount: action.options.amount,
             origin: action.options.countryName || null,
-            destination: countryName,
+            destination: country.name,
             color: action.options.color
           }
         )
@@ -153,11 +153,12 @@ class BoardContainer extends Component {
         amount += action.options.amount
       }
       if (army && army.amount > 0) {
-        removeArmy(id, uid, countryName, army.id, 1)
+        removeArmy(id, uid, country.id, army.id, 1)
         this.props.onChangeAction({
           type: 'MOVE_ARMY',
           options: {
-            countryName,
+            countryName: country.name,
+            countryId: country.id,
             armyId: army.id,
             amount,
             color: army.color
@@ -209,8 +210,8 @@ class BoardContainer extends Component {
             color={army.color}
             x={(country.x - (groups / 2) * 0.04 + 0.04 * index) * width}
             y={country.y * height}
-            onClick={(e) => this.onClickCountry(e, country.name, army)}
-            onContextMenu={(e) => this.onClickCountry(e, country.name, army, true)}
+            onClick={(e) => this.onClickCountry(e, country, army)}
+            onContextMenu={(e) => this.onClickCountry(e, country, army, true)}
             clickable
             highlight={
               action.type === 'MOVE_ARMY' &&
@@ -228,8 +229,8 @@ class BoardContainer extends Component {
             color='#808080'
             x={country.x * width}
             y={country.y * height}
-            onMouseDown={(e) => this.onClickCountry(e, country.name, null)}
-            onContextMenu={(e) => this.onClickCountry(e, country.name, null, true)}
+            onMouseDown={(e) => this.onClickCountry(e, country, null)}
+            onContextMenu={(e) => this.onClickCountry(e, country, null, true)}
             clickable={pop}
             highlight={
               action.type === 'MOVE_ARMY' &&
@@ -253,7 +254,7 @@ class BoardContainer extends Component {
       height
     } = this.props
 
-    const joinedCountries = countries.map(country => ({ ...countriesDir[country.name], ...country }))
+    const joinedCountries = countries.map(country => ({ ...countriesDir[country.id], ...country }))
     const pop = action.type === 'PLACE_ARMY' || action.type === 'MOVE_ARMY'
 
     return (

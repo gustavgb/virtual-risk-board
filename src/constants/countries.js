@@ -1,3 +1,5 @@
+import { fromString } from 'utils/makeId'
+
 export const countries = [{
   name: 'Alaska',
   x: 0.07676969092721835,
@@ -169,6 +171,6 @@ export const countries = [{
 }]
 
 export const countriesDir = countries.reduce((acc, country) => {
-  acc[country.name] = country
+  acc[fromString(country.name)] = country
   return acc
 }, {})

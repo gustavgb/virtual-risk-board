@@ -3,7 +3,7 @@ import { object } from 'rxfire/database'
 import { map, switchMap } from 'rxjs/operators'
 import { fromString } from 'utils/makeId'
 import { combineLatest } from 'rxjs'
-import { countries } from 'constants/countries'
+import { countries, countriesDir } from 'constants/countries'
 import store from 'store'
 import { distribute, removeRandom, shuffle } from 'utils/cards'
 import { getRandom } from 'utils/random'
@@ -84,7 +84,7 @@ export const startGame = (gameId) => {
     return game
   })
     .then(() => Promise.all(
-      members.map(member => database.ref(`hands/${gameId}${member}`).transaction(hand => {
+      members.map(member => database.ref(`hands/${gameId}/${member}`).transaction(hand => {
         if (!hand) {
           return {
             cards: [],
@@ -126,16 +126,20 @@ export const joinGame = (user, gameId) => {
 }
 
 export const streamState = ({ uid }, gameId) => {
-  const gameRef = database.ref(`games/${gameId}`)
-  const boardRef = database.ref(`boards/${gameId}`)
-  const eventsRef = database.ref(`events/${gameId}`)
-  const membersRef = database.ref(`games/${gameId}/members`)
-
   return combineLatest(
-    object(gameRef),
-    object(boardRef),
-    object(eventsRef),
-    object(membersRef).pipe(
+    object(database.ref(`games/${gameId}`)),
+    object(database.ref(`boards/${gameId}/events`)),
+    object(database.ref(`boards/${gameId}/display`)),
+    object(database.ref(`boards/${gameId}/colors`)),
+    combineLatest(
+      ...Object.keys(countriesDir).map(key => (
+        object(database.ref(`boards/${gameId}/countries/${key}`))
+      ))
+    ).pipe(map(countries => countries.map(country => ({
+      ...country.snapshot.val(),
+      id: country.snapshot.key
+    })))),
+    object(database.ref(`games/${gameId}/members`)).pipe(
       switchMap(members => combineLatest(
         ...(members.snapshot.exists() ? members.snapshot.val() : [])
           .map(member => object(database.ref(`users/${member}`)))
@@ -143,11 +147,13 @@ export const streamState = ({ uid }, gameId) => {
       map(users => users.map(user => ({ ...user.snapshot.val(), id: user.snapshot.key })))
     )
   ).pipe(
-    map(([game, board, events, users]) => ({
+    map(([game, events, display, colors, countries, users]) => game.snapshot.exists() ? ({
       game: mapGame({
         ...game.snapshot.val(),
-        ...board.snapshot.val(),
+        display: display.snapshot.val() || {},
+        colors: colors.snapshot.val() || {},
         events: events.snapshot.val() || [],
+        countries,
         id: gameId,
         timestamp: Date.now()
       }),
@@ -156,12 +162,12 @@ export const streamState = ({ uid }, gameId) => {
         uid
       },
       users
-    }))
+    }) : null)
   )
 }
 
 export const streamHand = ({ uid }, gameId) => {
-  const handRef = database.ref(`hands/${gameId}${uid}`)
+  const handRef = database.ref(`hands/${gameId}/${uid}`)
 
   return object(handRef).pipe(
     map(hand => mapHand({
@@ -172,25 +178,23 @@ export const streamHand = ({ uid }, gameId) => {
 }
 
 export const setColors = (gameId, uid, color) => {
-  return database.ref(`games/${gameId}`).transaction(game => {
-    if (game) {
-      if (!game.colors) {
-        game.colors = {}
-      }
-
-      game.colors = {
-        ...game.colors,
-        [uid]: color
-      }
+  return database.ref(`boards/${gameId}/colors`).transaction(colors => {
+    if (!colors) {
+      colors = {}
     }
-    return game
+
+    colors = {
+      ...colors,
+      [uid]: color
+    }
+    return colors
   })
 }
 
 export const takeCard = (gameId, userId) => {
   const cardType = Math.floor(getRandom(0, 3))
 
-  return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
+  return database.ref(`hands/${gameId}/${userId}`).transaction(hand => {
     if (hand) {
       if (!hand.cards) {
         hand.cards = []
@@ -202,127 +206,85 @@ export const takeCard = (gameId, userId) => {
   })
 }
 
-export const placeArmy = (gameId, userId, country, color, amount = 1) => {
-  return database.ref(`boards/${gameId}`).transaction(board => {
-    if (board && color) {
-      board.countries = board.countries.map(c => {
-        if (country === c.name) {
-          const armies = c.armies || {}
-          const key = fromString(color)
-          const prevAmount = armies[key] ? armies[key].amount : 0
+export const placeArmy = (gameId, userId, countryKey, color, amount = 1) => {
+  return database.ref(`boards/${gameId}/countries/${countryKey}`).transaction(country => {
+    if (country && color) {
+      const armies = country.armies || {}
+      const key = fromString(color)
+      const prevAmount = armies[key] ? armies[key].amount : 0
 
-          return {
-            ...c,
-            armies: {
-              ...armies,
-              [key]: {
-                color,
-                amount: prevAmount + amount
-              }
-            }
-          }
+      country.armies = {
+        ...armies,
+        [key]: {
+          color,
+          amount: prevAmount + amount
         }
-
-        return c
-      })
+      }
     }
-    return board
+    return country
   })
 }
 
-export const removeArmy = (gameId, userId, country, armyId, amount = 1) => {
-  return database.ref(`boards/${gameId}`).transaction(board => {
-    if (board) {
+export const removeArmy = (gameId, userId, countryKey, armyId, amount = 1) => {
+  return database.ref(`boards/${gameId}/countries/${countryKey}`).transaction(country => {
+    if (country && armyId) {
       if (armyId) {
-        board.countries = board.countries.map(c => {
-          if (country === c.name) {
-            const armies = c.armies || {}
-            const prevAmount = armies[armyId] ? armies[armyId].amount : 0
+        const armies = country.armies || {}
+        const prevAmount = armies[armyId] ? armies[armyId].amount : 0
 
-            if (prevAmount - amount > 0) {
-              return {
-                ...c,
-                armies: {
-                  ...armies,
-                  [armyId]: {
-                    ...armies[armyId],
-                    amount: prevAmount - amount
-                  }
-                }
-              }
-            } else {
-              return {
-                ...c,
-                armies: {
-                  ...armies,
-                  [armyId]: null
-                }
-              }
+        if (prevAmount - amount > 0) {
+          country.armies = {
+            ...armies,
+            [armyId]: {
+              ...armies[armyId],
+              amount: prevAmount - amount
             }
           }
-
-          return c
-        })
+        } else {
+          country.armies = {
+            ...armies,
+            [armyId]: null
+          }
+        }
       }
     }
-    return board
+    return country
   })
 }
 
 export const displayCard = (gameId, userId, cardType, cardIndex) => {
-  return database.ref(`games/${gameId}`).transaction(game => {
-    if (game) {
-      if (!game.displayedCards) {
-        game.displayedCards = {
-          userId
-        }
-      }
-
-      if (game.displayedCards.userId === userId) {
-        if (!game.displayedCards.list) {
-          game.displayedCards.list = []
-        }
-        game.displayedCards.list.push({
-          cardType,
-          cardIndex
-        })
-      }
+  return database.ref(`boards/${gameId}/display/cards`).transaction(cards => {
+    if (!cards) {
+      cards = {}
     }
 
-    return game
+    if (!cards[userId]) {
+      cards[userId] = []
+    }
+
+    cards[userId].push({
+      cardType,
+      cardIndex
+    })
+
+    return cards
   })
 }
 
 export const removeDisplayedCard = (gameId, userId, cardIndex) => {
-  return database.ref(`games/${gameId}`).transaction(game => {
-    if (game) {
-      if (!game.displayedCards) {
-        game.displayedCards = {
-          userId,
-          list: []
-        }
-      }
-
-      if (game.displayedCards.userId === userId) {
-        if (!game.displayedCards.list) {
-          game.displayedCards.list = []
-        }
-        game.displayedCards.list = game.displayedCards.list.filter(
-          card => card.cardIndex !== cardIndex
-        )
-      }
-
-      if (game.displayedCards.list.length === 0) {
-        game.displayedCards = null
-      }
+  return database.ref(`boards/${gameId}/display/cards`).transaction(cards => {
+    if (cards && cards[userId]) {
+      cards[userId] = cards[userId].filter(
+        card => card.cardIndex !== cardIndex
+      )
     }
 
-    return game
+    return cards
   })
 }
 
 export const discardDisplayedCards = (gameId, userId, displayedCards) => {
-  return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
+  return database.ref(`hands/${gameId}/${userId}`).transaction(hand => {
     if (hand) {
       if (!hand.cards) {
         hand.cards = []
@@ -333,34 +295,18 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
 
     return hand
   })
-    .then(() => database.ref(`games/${gameId}`).transaction(game => {
-      if (game) {
-        if (!game.displayedCards) {
-          game.displayedCards = {
-            list: []
-          }
-        }
-
-        if (!game.displayedCards.list) {
-          game.displayedCards.list = []
-        }
-
-        if (game.displayedCards.userId === userId) {
-          game.displayedCards.list = game.displayedCards.list.filter(card => !displayedCards.find(c => c.cardIndex === card.cardIndex))
-
-          if (game.displayedCards.list.length === 0) {
-            game.displayedCards = null
-          }
-        }
+    .then(() => database.ref(`boards/${gameId}/display/cards`).transaction(cards => {
+      if (cards && cards[userId]) {
+        cards[userId] = null
       }
 
-      return game
+      return cards
     }))
 }
 
 export const throwRandomCard = (gameId, userId) => {
   const out = {}
-  return database.ref(`hands/${gameId}${userId}`).transaction(hand => {
+  return database.ref(`hands/${gameId}/${userId}`).transaction(hand => {
     if (hand) {
       if (!hand.cards) {
         hand.cards = []
@@ -371,25 +317,19 @@ export const throwRandomCard = (gameId, userId) => {
 
     return hand
   })
-    .then(database.ref(`games/${gameId}`).transaction(game => {
-      if (game && game.displayedCards) {
-        if (
-          game.displayedCards.userId === userId &&
-          game.displayedCards.list &&
-          game.displayedCards.list.length > 0
-        ) {
-          game.displayedCards.list = game.displayedCards.list.filter(card => card.cardIndex !== out.index)
-        }
+    .then(database.ref(`boards/${gameId}/display/cards`).transaction(cards => {
+      if (cards && cards[userId]) {
+        cards[userId] = cards[userId].filter(card => card.cardIndex !== out.index)
       }
 
-      return game
+      return cards
     }))
 }
 
 export const pushToLog = (gameId, userId, code, content) => {
   const timeOffset = store.getState().timeOffset
 
-  database.ref(`events/${gameId}`).transaction(events => {
+  database.ref(`boards/${gameId}/events`).transaction(events => {
     if (!events) {
       events = []
     }
@@ -442,35 +382,32 @@ export const connectToPresence = (gameId, uid) => {
 }
 
 export const rollDice = (gameId, userId, removeOld) => {
-  return database.ref(`games/${gameId}`).transaction(game => {
-    if (game) {
-      if (!game.dice) {
-        game.dice = {}
-      }
-
-      if (!game.dice[userId] || removeOld) {
-        game.dice[userId] = []
-      }
-
-      game.dice[userId].push(Math.floor(getRandom(1, 6)))
-      game.dice[userId].sort((a, b) => {
-        if (a > b) {
-          return -1
-        } else if (a < b) {
-          return 1
-        }
-        return 0
-      })
+  return database.ref(`boards/${gameId}/display/dice`).transaction(dice => {
+    if (!dice) {
+      dice = {}
     }
-    return game
+    if (!dice[userId] || removeOld) {
+      dice[userId] = []
+    }
+
+    dice[userId].push(Math.floor(getRandom(1, 6)))
+    dice[userId].sort((a, b) => {
+      if (a > b) {
+        return -1
+      } else if (a < b) {
+        return 1
+      }
+      return 0
+    })
+    return dice
   })
 }
 
 export const removeDice = (gameId, userId) => {
-  return database.ref(`games/${gameId}`).transaction(game => {
-    if (game && game.dice && game.dice[userId]) {
-      game.dice[userId] = null
+  return database.ref(`boards/${gameId}/display/dice`).transaction(dice => {
+    if (dice && dice[userId]) {
+      dice[userId] = null
     }
-    return game
+    return dice
   })
 }

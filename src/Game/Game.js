@@ -39,11 +39,6 @@ const ActionContainer = styled.div.attrs(props => ({
   position: absolute;
   z-index: 1000;
   pointer-events: none;
-
-  & > * {
-    max-height: 10rem;
-    max-width: 10rem;
-  }
 `
 
 const ArmyMarker = styled.div`
@@ -130,7 +125,13 @@ class GameContainer extends Component {
         this.connectToPresence = connectToPresence(joinedGame, user.uid)
 
         this.streamState = streamState(user, joinedGame).subscribe((state) => {
-          this.setState(state)
+          if (state) {
+            this.setState(state)
+          } else {
+            this.setState({
+              invalidCode: true
+            })
+          }
         })
         this.streamHand = streamHand(user, joinedGame).subscribe((hand) => {
           this.setState({
@@ -352,8 +353,8 @@ class GameContainer extends Component {
     }
 
     const hasOverlayMessages = (
-      game.displayedCards.list.length > 0 ||
-      Object.keys(game.dice).length > 0
+      game.display.cards ||
+      game.display.dice
     )
 
     return (
@@ -362,8 +363,8 @@ class GameContainer extends Component {
         <ReturnCardZone active={action.type === 'MOVE_DISPLAYED_CARD'} onMouseUp={() => this.onReturnCard()} />
         {hasOverlayMessages && (
           <OverlayMessages onMouseUp={() => this.onChangeAction({})}>
-            <DisplayedCards displayedCards={game.displayedCards} {...props} />
-            <RolledDice {...props} />
+            <DisplayedCards cards={game.display.cards} {...props} />
+            <RolledDice dice={game.display.dice} {...props} />
           </OverlayMessages>
         )}
         <Tools {...props} />

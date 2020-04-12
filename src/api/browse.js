@@ -1,7 +1,7 @@
 import { database } from 'api'
 import { list, object } from 'rxfire/database'
 import { map } from 'rxjs/operators'
-import { countries } from 'constants/countries'
+import { countriesDir } from 'constants/countries'
 import { generateId } from 'utils/makeId'
 import { missions } from 'constants/missions'
 
@@ -43,15 +43,23 @@ export const createGame = (user) => {
     id,
     title,
     creator: user.uid,
-    colors: {},
     missions
   })
   database.ref(`boards/${id}`).set({
-    countries: countries.map(country => ({
-      name: country.name,
-      armies: []
-    })),
-    events: []
+    id,
+    countries: Object.keys(countriesDir).reduce((acc, key) => {
+      acc[key] = ({
+        name: countriesDir[key].name,
+        armies: {}
+      })
+      return acc
+    }, {}),
+    colors: {},
+    events: [],
+    display: {
+      dice: {},
+      cards: {}
+    }
   })
 }
 
@@ -72,8 +80,7 @@ export const deleteGame = (game) => {
     return Promise.all([
       database.ref(`games/${game.id}`).remove(),
       database.ref(`boards/${game.id}`).remove(),
-      database.ref(`events/${game.id}`).remove(),
-      ...(game.members || []).map(member => database.ref(`hands/${game.id}${member}`).remove())
+      ...(game.members || []).map(member => database.ref(`hands/${game.id}/${member}`).remove())
     ])
   }
 }

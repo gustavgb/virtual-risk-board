@@ -5,8 +5,7 @@ let loading = false
 
 const defaultUser = {
   email: null,
-  name: null,
-  games: []
+  name: null
 }
 
 auth.onAuthStateChanged(function (user) {
