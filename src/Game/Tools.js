@@ -284,10 +284,9 @@ class SidebarContainer extends Component {
   }
 
   onMoveCard (type, index) {
-    const { action, game: { displayedCards }, user: { uid } } = this.props
+    const { action } = this.props
     if (
-      !(action.type === 'MOVE_CARD' && action.options.index === index) &&
-      !(displayedCards.userId === uid && displayedCards.list.find(c => c.cardIndex === index))
+      !(action.type === 'MOVE_CARD' && action.options.index === index)
     ) {
       this.props.onChangeAction({
         type: 'MOVE_CARD',
@@ -334,8 +333,7 @@ class SidebarContainer extends Component {
     const {
       action,
       game: {
-        id,
-        displayedCards
+        id
       },
       user: {
         uid,
@@ -345,18 +343,16 @@ class SidebarContainer extends Component {
 
     switch (action.type) {
       case 'MOVE_CARD':
-        if (displayedCards.userId === uid || !displayedCards.userId) {
-          displayCard(id, uid, action.options.type, action.options.index)
-          this.pushToLog(
-            'DISPLAY_CARD',
-            {
-              user: name,
-              type: action.options.index === 'mission'
-                ? action.options.index
-                : action.options.type
-            }
-          )
-        }
+        displayCard(id, uid, action.options.type, action.options.index)
+        this.pushToLog(
+          'DISPLAY_CARD',
+          {
+            user: name,
+            type: action.options.index === 'mission'
+              ? action.options.index
+              : action.options.type
+          }
+        )
         this.props.onChangeAction({})
         break
       default:
@@ -389,7 +385,8 @@ class SidebarContainer extends Component {
         display: {
           cards: displayedCards,
           dice
-        }
+        },
+        cards: amountOfCards
       },
       hand: {
         cards,
@@ -464,6 +461,7 @@ class SidebarContainer extends Component {
                     const colorId = fromString(gameColors[user.id])
                     const armies = countries.reduce((sum, country) => sum + (country.armies[colorId] || { amount: 0 }).amount, 0)
                     const territories = countries.filter(country => !!country.armies[colorId] && country.armiesList.length === 1).length
+                    const cards = amountOfCards[user.id]
                     return (
                       <ListItem key={user.id}>
                         <Username color={gameColors[user.id]}>{user.name}</Username>
@@ -471,6 +469,7 @@ class SidebarContainer extends Component {
                         <ul>
                           <li>Armérer: {armies}</li>
                           <li>Territorier: {territories}</li>
+                          <li>Kort: {cards}</li>
                         </ul>
                       </ListItem>
                     )

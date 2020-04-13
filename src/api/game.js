@@ -93,6 +93,17 @@ export const startGame = (gameId) => {
         return hand
       }))
     ))
+    .then(() => database.ref(`boards/${gameId}/cards`).transaction(cards => {
+      if (!cards) {
+        cards = {}
+      }
+
+      members.forEach(member => {
+        cards[member] = 0
+      })
+
+      return cards
+    }))
     .then(() => database.ref(`games/${gameId}`).transaction(game => {
       if (game) {
         game.started = true
@@ -129,6 +140,7 @@ export const streamState = ({ uid }, gameId) => {
     object(database.ref(`boards/${gameId}/events`)),
     object(database.ref(`boards/${gameId}/display`)),
     object(database.ref(`boards/${gameId}/colors`)),
+    object(database.ref(`boards/${gameId}/cards`)),
     combineLatest(
       ...Object.keys(countriesDir).map(key => (
         object(database.ref(`boards/${gameId}/countries/${key}`))
@@ -145,9 +157,10 @@ export const streamState = ({ uid }, gameId) => {
       map(users => users.map(user => ({ ...user.snapshot.val(), id: user.snapshot.key })))
     )
   ).pipe(
-    map(([game, events, display, colors, countries, users]) => game.snapshot.exists() ? ({
+    map(([game, events, display, colors, cards, countries, users]) => game.snapshot.exists() ? ({
       game: mapGame({
         ...game.snapshot.val(),
+        cards: cards.snapshot.val() || {},
         display: display.snapshot.val() || {},
         colors: colors.snapshot.val() || {},
         events: events.snapshot.val() || [],
@@ -191,6 +204,7 @@ export const setColors = (gameId, uid, color) => {
 
 export const takeCard = (gameId, userId) => {
   const cardType = Math.floor(getRandom(0, 3))
+  let amount = null
 
   return database.ref(`hands/${gameId}/${userId}`).transaction(hand => {
     if (hand) {
@@ -199,9 +213,12 @@ export const takeCard = (gameId, userId) => {
       }
 
       hand.cards.push(cardType)
+
+      amount = hand.cards.length
     }
     return hand
   })
+    .then(() => database.ref(`boards/${gameId}/cards/${userId}`).set(amount))
 }
 
 export const placeArmy = (gameId, userId, countryKey, color, amount = 1) => {
@@ -278,6 +295,7 @@ export const removeDisplayedCard = (gameId, userId, cardIndex) => {
 }
 
 export const discardDisplayedCards = (gameId, userId, displayedCards) => {
+  let amount = null
   return database.ref(`hands/${gameId}/${userId}`).transaction(hand => {
     if (hand) {
       if (!hand.cards) {
@@ -285,6 +303,8 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
       }
 
       hand.cards = hand.cards.filter((card, index) => !displayedCards.find(c => c.cardIndex === index))
+
+      amount = hand.cards.length
     }
 
     return hand
@@ -296,10 +316,12 @@ export const discardDisplayedCards = (gameId, userId, displayedCards) => {
 
       return cards
     }))
+    .then(() => database.ref(`boards/${gameId}/cards/${userId}`).set(amount))
 }
 
 export const throwRandomCard = (gameId, userId) => {
   const out = {}
+  let amount = null
   return database.ref(`hands/${gameId}/${userId}`).transaction(hand => {
     if (hand) {
       if (!hand.cards) {
@@ -307,6 +329,8 @@ export const throwRandomCard = (gameId, userId) => {
       }
 
       hand.cards = removeRandom(hand.cards, out)
+
+      amount = hand.cards.length
     }
 
     return hand
@@ -318,6 +342,7 @@ export const throwRandomCard = (gameId, userId) => {
 
       return cards
     }))
+    .then(() => database.ref(`boards/${gameId}/cards/${userId}`).set(amount))
 }
 
 export const pushToLog = (gameId, userId, code, content) => {
