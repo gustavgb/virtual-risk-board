@@ -34,8 +34,8 @@ const OverlayMessages = memo((props) => {
 
   return (
     <Overlay onMouseUp={() => onChangeAction({})}>
-      <DisplayedCards cards={game.display.cards} {...props} />
       <RolledDice dice={game.display.dice} {...props} />
+      <DisplayedCards cards={game.display.cards} {...props} />
     </Overlay>
   )
 }, (prevProps, nextProps) => (

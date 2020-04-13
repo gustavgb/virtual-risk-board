@@ -47,7 +47,7 @@ class RolledDice extends Component {
       'DISCARD_DICE',
       {
         user: name,
-        dice: dice[uid]
+        dice: dice[uid].map(dice => dice.value)
       }
     )
   }

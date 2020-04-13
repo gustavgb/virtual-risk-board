@@ -225,7 +225,7 @@ class EventLog extends Component {
       (event.code === 'PLACE_ARMY' || event.code === 'DISCARD_ARMY') &&
       event.userId !== uid
     ) {
-      const country = countriesDir[event.content.destination || event.content.country]
+      const country = countriesDir[event.content.countryId]
       return (
         <ExpireringMessage key={event.timestamp} expire={event.timestamp + 1000}>
           {({ expired }) => !expired
