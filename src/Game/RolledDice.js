@@ -79,7 +79,7 @@ class RolledDice extends Component {
         return (
           <React.Fragment key={`rolledDice${userId}`}>
             <Header>
-              <h2>{uid === userId ? 'Du har kastet' : `${user.name} har kastet`} {rolledDice.length} {rolledDice.length > 0 ? 'terninger' : 'terning'}</h2>
+              <h2>{uid === userId ? 'Du har kastet' : `${user.name} har kastet`} {rolledDice.length} {rolledDice.length > 1 ? 'terninger' : 'terning'}</h2>
               {isOwnDice && (
                 <>
                   <Button
@@ -98,14 +98,14 @@ class RolledDice extends Component {
                     color='#f00'
                     onClick={this.onDiscard.bind(this)}
                   >
-                    Fjern {rolledDice.length > 0 ? 'terningerne' : 'terningen'}
+                    Fjern {rolledDice.length > 1 ? 'terningerne' : 'terningen'}
                   </Button>
                 </>
               )}
             </Header>
             <DiceContainer>
-              {rolledDice.map((diceValue, index) => (
-                <Dice key={`dice${index}`}>{diceValue}</Dice>
+              {rolledDice.map((dice) => (
+                <Dice key={`dice${dice.timestamp}`}>{dice.value}</Dice>
               ))}
             </DiceContainer>
           </React.Fragment>

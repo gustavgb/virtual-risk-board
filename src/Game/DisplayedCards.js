@@ -13,7 +13,7 @@ const CardContainer = styled.div`
 
 const flyIn = keyframes`
   0% {
-    transform: translate3d(50vw, 0, 0);
+    transform: translate3d(15vw, 0, 0);
   }
 
   100% {

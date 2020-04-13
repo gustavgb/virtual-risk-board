@@ -387,7 +387,8 @@ class SidebarContainer extends Component {
         colors: gameColors,
         id: gameId,
         display: {
-          cards: displayedCards = {}
+          cards: displayedCards,
+          dice
         }
       },
       hand: {
@@ -411,14 +412,18 @@ class SidebarContainer extends Component {
       myInitialCountries = initialCountries[uid]
       myColorId = selectedColor.hex && fromString(selectedColor.hex)
       myCountries = countries.filter(country => !!country.armies[myColorId] && country.armiesList.length === 1).map(country => country.name)
-      myDisplayedCards = displayedCards[uid] || []
+      if (displayedCards && displayedCards[uid]) {
+        myDisplayedCards = displayedCards[uid]
+      } else {
+        myDisplayedCards = []
+      }
     }
 
     return (
       <>
         <BoardDropZone
           active={action.type === 'MOVE_CARD'}
-          hasDisplay={Object.keys(displayedCards).length > 0}
+          hasDisplay={displayedCards || dice}
           onMouseUp={this.onClickBoard.bind(this)}
         >
           Vis dette kort til de andre spillere
@@ -439,7 +444,7 @@ class SidebarContainer extends Component {
           {hasHand && (
             <Details inline>
               <summary><h3>Mine begyndelseslande</h3></summary>
-              <DetailsBody right>
+              <DetailsBody right hidden={action.type}>
                 <ul>
                   {myInitialCountries.map(country => (
                     <ListItem done={myCountries.find(c => c === country)} key={country}>{country}</ListItem>
@@ -452,7 +457,7 @@ class SidebarContainer extends Component {
             inline
           >
             <summary><h3>Spillere</h3></summary>
-            <DetailsBody right>
+            <DetailsBody right hidden={action.type}>
               <ul>
                 {users.map(user => {
                   if (gameColors[user.id]) {

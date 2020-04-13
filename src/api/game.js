@@ -20,17 +20,12 @@ const mapGame = (game) => {
     initialCountries: [],
     status: {},
     missions: [],
-    dice: {},
     ...game,
     events: (game.events || []).map(event => ({
       ...event,
       timestamp: event.timestamp - timeOffset,
       expire: event.expire - timeOffset
     })),
-    displayedCards: {
-      list: [],
-      ...(game.displayedCards || {})
-    },
     countries: (game.countries || []).map(country => ({
       armies: {},
       ...country,
@@ -256,16 +251,12 @@ export const removeArmy = (gameId, userId, countryKey, armyId, amount = 1) => {
 }
 
 export const displayCard = (gameId, userId, cardType, cardIndex) => {
-  return database.ref(`boards/${gameId}/display/cards`).transaction(cards => {
+  return database.ref(`boards/${gameId}/display/cards/${userId}`).transaction(cards => {
     if (!cards) {
-      cards = {}
+      cards = []
     }
 
-    if (!cards[userId]) {
-      cards[userId] = []
-    }
-
-    cards[userId].push({
+    cards.push({
       cardType,
       cardIndex
     })
@@ -275,9 +266,9 @@ export const displayCard = (gameId, userId, cardType, cardIndex) => {
 }
 
 export const removeDisplayedCard = (gameId, userId, cardIndex) => {
-  return database.ref(`boards/${gameId}/display/cards`).transaction(cards => {
-    if (cards && cards[userId]) {
-      cards[userId] = cards[userId].filter(
+  return database.ref(`boards/${gameId}/display/cards/${userId}`).transaction(cards => {
+    if (cards) {
+      cards = cards.filter(
         card => card.cardIndex !== cardIndex
       )
     }
@@ -320,9 +311,9 @@ export const throwRandomCard = (gameId, userId) => {
 
     return hand
   })
-    .then(database.ref(`boards/${gameId}/display/cards`).transaction(cards => {
-      if (cards && cards[userId]) {
-        cards[userId] = cards[userId].filter(card => card.cardIndex !== out.index)
+    .then(database.ref(`boards/${gameId}/display/cards/${userId}`).transaction(cards => {
+      if (cards) {
+        cards = cards.filter(card => card.cardIndex !== out.index)
       }
 
       return cards
@@ -385,19 +376,20 @@ export const connectToPresence = (gameId, uid) => {
 }
 
 export const rollDice = (gameId, userId, removeOld) => {
-  return database.ref(`boards/${gameId}/display/dice`).transaction(dice => {
-    if (!dice) {
-      dice = {}
-    }
-    if (!dice[userId] || removeOld) {
-      dice[userId] = []
+  const timeOffset = store.getState().timeOffset
+  return database.ref(`boards/${gameId}/display/dice/${userId}`).transaction(dice => {
+    if (!dice || removeOld) {
+      dice = []
     }
 
-    dice[userId].push(Math.floor(getRandom(1, 6)))
-    dice[userId].sort((a, b) => {
-      if (a > b) {
+    dice.push({
+      timestamp: Date.now() + timeOffset,
+      value: Math.floor(getRandom(1, 6))
+    })
+    dice.sort((a, b) => {
+      if (a.value > b.value) {
         return -1
-      } else if (a < b) {
+      } else if (a.value < b.value) {
         return 1
       }
       return 0
